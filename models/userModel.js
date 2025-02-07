@@ -1,10 +1,14 @@
 const mongoose = require("mongoose");
 const { isEmail } = require("validator");
-const { ADMIN, USER } = require("../utils/userRoles");
+const roles = require("../utils/userRoles");
 const userSchema = new mongoose.Schema({
-  name: {
+  firstName: {
     type: String,
-    required: [true, "Please enter your name"],
+    required: [true, "Please enter your FirstName"],
+  },
+  lastName: {
+    type: String,
+    required: [true, "Please enter your lastName"],
   },
   email: {
     type: String,
@@ -21,7 +25,7 @@ const userSchema = new mongoose.Schema({
   },
   role: {
     type: String,
-    enum: [USER, ADMIN],
+    enum: [...roles],
     default: USER,
   },
 });

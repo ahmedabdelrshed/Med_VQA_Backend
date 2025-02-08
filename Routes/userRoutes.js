@@ -3,7 +3,8 @@ const userSchema = require("../validations/userValidation");
 const { validationResult } = require("express-validator");
 const User = require("../models/userModel");
 const { register } = require("../controllers/userController");
+const { login } = require("../controllers/userController");
 const userRouter = express.Router();
 userRouter.post("/register", userSchema(),register);
-
+userRouter.post("/login",login);
 module.exports = userRouter;

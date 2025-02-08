@@ -41,6 +41,45 @@ const register = async (req, res, next) => {
   }
 };
 
+const login =async (req, res, next) => {
+  const errors = validationResult(req);
+
+  if (!errors.isEmpty()) {
+    return res.status(400).json({ errors: errors.array() });
+  }
+
+  try{
+  const { email, password } = req.body;
+  if (!email || !password) {
+    return res.status(400).json({ error: "Email and password are required" });
+  }
+  const user = await User.findOne({ email}).select("+password");
+
+  if (!user) {
+    const error = appError.createError("User not found", 404, ERROR);
+    return next(error);
+  }
+
+  const matchedPassword=await bcrypt.compare(password, user.password);
+
+  if (!matchedPassword) {
+    const error = appError.createError("Incorrect Password", 401, ERROR);
+    return next(error);
+  }
+  const token = createToken(user);
+  user.token = token;
+  res.json({
+    message: "Login successful",
+    token: token,
+  })}
+  catch (error) {
+    next(error);
+  };
+
+};
+
+
 module.exports = {
   register,
+  login,
 };

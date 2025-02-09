@@ -84,46 +84,49 @@ const login =async (req, res, next) => {
 
 };
 const updateUser = async (req, res, next) => {
-    try {
-      const token = req.headers.authorization?.split(" ")[1];
-      if (!token) {
-        return next(appError.createError("Unauthorized access", 401, ERROR));
-      }
-  
-      const decoded = jwt.verify(token, process.env.JWT_SECRET);
-      const userId = decoded.userId;
-  
-      const user = await User.findById(userId).select("+password");
-      if (!user) {
-        return next(appError.createError("User not found", 404, ERROR));
-      }
-  
-      if (req.body.email) {
-        return next(appError.createError("Email cannot be updated", 400, ERROR));
-      }
-  
-      await handlePasswordUpdate(req.body, user);
-  
-      validateNameLength(req.body);
-  
-      if (req.file) {
-        req.body.avatar = `uploads/${req.file.filename}`;
-      }
-  
-      const updatedUser = await User.findByIdAndUpdate(userId, req.body, {
-        new: true,
-        runValidators: true,
-      });
-  
-      if (!updatedUser) {
-        return next(appError.createError("User update failed", 500, ERROR));
-      }
-  
-      res.json({ message: "Profile updated successfully", updatedUser });
-    } catch (error) {
-      next(error);
+  try {
+    const userId = req.currentUser.userId;
+
+    const user = await User.findById(userId).select("+password");
+    if (!user) {
+      return next(appError.createError("User not found", 404, ERROR));
     }
-  };
+
+    if (req.body.email) {
+      return next(appError.createError("Email cannot be updated", 400, ERROR));
+    }
+
+    await handlePasswordUpdate(req.body, user);
+
+    validateNameLength(req.body);
+
+    if (req.file) {
+      req.body.avatar = `uploads/${req.file.filename}`;
+    }
+
+    const updatedUser = await User.findByIdAndUpdate(userId, req.body, {
+      new: true,
+      runValidators: true,
+    });
+
+    if (!updatedUser) {
+      return next(appError.createError("User update failed", 500, ERROR));
+    }
+
+    const response = {
+      message: "Profile updated successfully",
+      updatedUser,
+    };
+
+    if (req.file) {
+      response.imagePath = req.file.path;
+    }
+
+    res.json(response);
+  } catch (error) {
+    next(error);
+  }
+};
   
 const handlePasswordUpdate = async (updateData, user) => {
     if (updateData.password && updateData.oldPassword) {

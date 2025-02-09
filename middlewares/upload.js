@@ -43,23 +43,26 @@ const checkImageSize = (req, res, next) => {
 
 
 
-const saveImageToDisk = (req, res, next) => {
-  if (!req.file) {
-    return next();
-  }
-
-  try {
-    const fileName = `${Date.now()}-${req.file.originalname}`;
-    const filePath = path.join(__dirname, "../uploads", fileName);
-
-    fs.writeFileSync(filePath, req.file.buffer);
-    req.file.path = filePath;
-
-    next();
-  } catch (err) {
-    next(appError.createError("Error saving image to disk", 500, "INTERNAL_ERROR"));
-  }
-};
+    const saveImageToDisk = (req, res, next) => {
+      if (!req.file) {
+        return next();
+      }
+    
+      try {
+        const fileName = `${Date.now()}-${req.file.originalname}`;
+        const filePath = path.join(__dirname, "../uploads", fileName);
+    
+        fs.writeFileSync(filePath, req.file.buffer);
+        req.file.path = filePath;
+        req.file.filename = fileName; 
+       
+        req.imagePath = filePath;
+    
+        next();
+      } catch (err) {
+        next(appError.createError("Error saving image to disk", 500, "INTERNAL_ERROR"));
+      }
+    };
 
 const upload = multer({ storage, fileFilter });
 

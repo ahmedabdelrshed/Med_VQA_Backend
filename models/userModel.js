@@ -31,7 +31,8 @@ const userSchema = new mongoose.Schema({
   avatar:{
     type:String,
     default:'uploads/defaultProfile.png'
-}
+  },
+  isVerified: { type: Boolean, default: false },
 });
 
 module.exports = mongoose.model("User", userSchema);

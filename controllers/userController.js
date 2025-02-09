@@ -7,6 +7,7 @@ var bcrypt = require("bcryptjs");
 const createToken = require("../utils/createToken");
 const { isStrongPassword } = require("validator");
 const jwt = require("jsonwebtoken");
+const verificationEmail = require("../utils/SendVerificationEmail");
 
 const register = async (req, res, next) => {
   const errors = validationResult(req);
@@ -30,12 +31,12 @@ const register = async (req, res, next) => {
   try {
     const hashPassword = await bcrypt.hash(password, 10);
     const newUser = new User({ ...req.body, password: hashPassword });
-    const token = createToken(newUser);
+    const token = createToken(newUser, "15m");
     newUser.token = token;
     await newUser.save();
+    await verificationEmail(newUser.email, token);
     res.status(201).json({
-      message: "User registered successfully",
-      token: token,
+      message: "Verification email sent successfully Please check Your Email",
     });
   } catch (error) {
     next(error);
@@ -59,7 +60,11 @@ const login =async (req, res, next) => {
   if (!user) {
     const error = appError.createError("User not found", 404, ERROR);
     return next(error);
-  }
+    }
+    if (!user.isVerified) {
+      const error = appError.createError("Email is not verified please check your email to Verify your Account", 403, ERROR);
+      return next(error);
+    }
 
   const matchedPassword=await bcrypt.compare(password, user.password);
 
@@ -154,8 +159,34 @@ const handlePasswordUpdate = async (updateData, user) => {
   };
     
 
+const verifyEmail = async(req,res) => {
+  const { token } = req.params;
+  if (!token) {
+    return res.status(400).json({ error: "Token is required" });
+  }
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+  const userEmail = decoded.email
+  const user = await User.findOne({ email: userEmail });
+  if (!user) {
+    return res.status(404).json({ error: "User not found" });
+  }
+  if (user.isVerified) {
+    const error = appError.createError('User is already verified', 400, ERROR)
+    return next(error);
+  }
+  user.isVerified = true;
+  await user.save();
+  res.json({ message: "User verified successfully you can login successfully" });
+  } catch (err) {
+    const error = appError.createError("Invalid token", 401, ERROR);
+    return next(error);
+  }
+
+}
 module.exports = {
   register,
   login,
   updateUser,
+  verifyEmail,
 };

@@ -39,4 +39,22 @@ const verificationEmail = async (email, token) => {
   });
 };
 
-module.exports = verificationEmail;
+const contactEmail =async (email, message) => {
+  try {
+  const mailOptions = {
+    from: email, 
+    to: process.env.EMAIL,
+    subject: "New Contact Us Message",
+    text: `From: ${email}\n\nMessage:\n${message}`,
+  };
+
+  await transporter.sendMail(mailOptions);
+  return { success: true, message: "Message sent successfully" };
+}
+catch (error) {
+  console.error("Error sending email:", error);
+  return { success: false, message: "Failed to send message" };
+}
+};
+
+module.exports = {verificationEmail,contactEmail};

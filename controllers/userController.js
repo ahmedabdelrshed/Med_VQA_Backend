@@ -7,6 +7,7 @@ var bcrypt = require("bcryptjs");
 const createToken = require("../utils/createToken");
 const { isStrongPassword } = require("validator");
 const jwt = require("jsonwebtoken");
+const {contactEmail} = require("../utils/SendVerificationEmail");
 const verificationEmail = require("../utils/SendVerificationEmail");
 
 const register = async (req, res, next) => {
@@ -125,7 +126,31 @@ const updateUser = async (req, res, next) => {
     next(error);
   }
 };
-  
+ 
+
+const contactUs = async (req, res, next) => {
+  try {
+    const userEmail = req.currentUser?.email;
+    const message = req.body?.message;
+
+    if (!message) {
+      return next(appError.createError("Message is required", 400, "ERROR"));
+    }
+
+    const result = await contactEmail(userEmail, message);
+
+    if (!result.success) {
+      return next(appError.createError(result.message, 500, "ERROR"));
+    }
+
+    res.status(200).json({ success: true, message: "Message sent successfully" });
+  } catch (error) {
+    next(error);
+  }
+};
+
+
+
 const handlePasswordUpdate = async (updateData, user) => {
     if (updateData.password && updateData.oldPassword) {
       const matchedPassword = await bcrypt.compare(updateData.oldPassword, user.password);
@@ -185,9 +210,12 @@ const verifyEmail = async(req,res) => {
   }
 
 }
+
+
 module.exports = {
   register,
   login,
   updateUser,
   verifyEmail,
+  contactUs,
 };

@@ -9,6 +9,7 @@ const { isStrongPassword } = require("validator");
 const jwt = require("jsonwebtoken");
 const {contactEmail} = require("../utils/SendVerificationEmail");
 const verificationEmail = require("../utils/SendVerificationEmail");
+const sendResetPasswordEmail = require("../utils/sendResetPasswordEmail");
 
 const register = async (req, res, next) => {
   const errors = validationResult(req);
@@ -211,11 +212,53 @@ const verifyEmail = async(req,res) => {
 
 }
 
-
+const forgetPassword = async(req, res) => {
+  const { email } = req.body;
+  const user = await User.findOne({ email });
+  if (!user) {
+    return res.status(404).json({ error: "User not found" });
+  }
+  const token = createToken(user, "10m");
+  await sendResetPasswordEmail(email,token)
+  res.json({ message: "Reset password link sent successfully" });
+}
+const resetPassword = async (req, res) => { 
+  const token = req.params.token
+  if (!token) {
+    return res.status(400).json({ error: "Token is required" });
+  }
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const userId = decoded.userId;
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+    const { newPassword } = req.body;
+    if (!newPassword) {
+      return res.status(400).json({ error: "Password is required" });
+    }
+    if (!isStrongPassword(newPassword)) {
+      return res.status(400).json({
+        error: "Password should be at least 8 characters long and contain at least one uppercase letter, one lowercase letter, one number, and one special character",
+      });
+    }
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    user.password = hashedPassword;
+    await user.save();
+    res.json({ message: "Password reset successfully" });
+    
+  } catch (error) {
+    return res.status(401).json({ error: "Invalid token" });
+    
+  }
+}
 module.exports = {
   register,
   login,
   updateUser,
   verifyEmail,
   contactUs,
+  forgetPassword,
+  resetPassword,
 };

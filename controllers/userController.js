@@ -118,9 +118,7 @@ const updateUser = async (req, res, next) => {
       updatedUser,
     };
 
-    if (req.file) {
-      response.imagePath = req.file.path;
-    }
+    
 
     res.json(response);
   } catch (error) {

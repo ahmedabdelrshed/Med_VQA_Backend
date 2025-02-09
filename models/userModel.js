@@ -28,6 +28,10 @@ const userSchema = new mongoose.Schema({
     enum: [...roles],
     default: 'USER',
   },
+  avatar:{
+    type:String,
+    default:'uploads/defaultProfile.png'
+}
 });
 
 module.exports = mongoose.model("User", userSchema);

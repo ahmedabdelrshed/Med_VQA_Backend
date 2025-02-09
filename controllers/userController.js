@@ -6,6 +6,7 @@ const { ERROR } = require("../utils/httpStatus");
 var bcrypt = require("bcryptjs");
 const createToken = require("../utils/createToken");
 const { isStrongPassword } = require("validator");
+const jwt = require("jsonwebtoken");
 
 const register = async (req, res, next) => {
   const errors = validationResult(req);
@@ -77,9 +78,84 @@ const login =async (req, res, next) => {
   };
 
 };
-
+const updateUser = async (req, res, next) => {
+    try {
+      const token = req.headers.authorization?.split(" ")[1];
+      if (!token) {
+        return next(appError.createError("Unauthorized access", 401, ERROR));
+      }
+  
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
+      const userId = decoded.userId;
+  
+      const user = await User.findById(userId).select("+password");
+      if (!user) {
+        return next(appError.createError("User not found", 404, ERROR));
+      }
+  
+      if (req.body.email) {
+        return next(appError.createError("Email cannot be updated", 400, ERROR));
+      }
+  
+      await handlePasswordUpdate(req.body, user);
+  
+      validateNameLength(req.body);
+  
+      if (req.file) {
+        req.body.avatar = `uploads/${req.file.filename}`;
+      }
+  
+      const updatedUser = await User.findByIdAndUpdate(userId, req.body, {
+        new: true,
+        runValidators: true,
+      });
+  
+      if (!updatedUser) {
+        return next(appError.createError("User update failed", 500, ERROR));
+      }
+  
+      res.json({ message: "Profile updated successfully", updatedUser });
+    } catch (error) {
+      next(error);
+    }
+  };
+  
+const handlePasswordUpdate = async (updateData, user) => {
+    if (updateData.password && updateData.oldPassword) {
+      const matchedPassword = await bcrypt.compare(updateData.oldPassword, user.password);
+      if (!matchedPassword) {
+        throw appError.createError("Incorrect old password", 400, "ERROR");
+      }
+      if (!isStrongPassword(updateData.password)) {
+        throw appError.createError(
+          "Password should be at least 8 characters long and contain at least one uppercase letter, one lowercase letter, one number, and one special character",
+          400,
+          "ERROR"
+        );
+      }
+      const hashedPassword = await bcrypt.hash(updateData.password, 10);
+      updateData.password = hashedPassword;
+  
+      delete updateData.oldPassword;
+    } else if (updateData.password && !updateData.oldPassword) {
+      throw appError.createError("Old password is required", 400, "ERROR");
+    }
+  };
+  const validateNameLength = (updateData) => {
+    const { firstName, lastName } = updateData;
+  
+    if (firstName && (firstName.length < 3 || firstName.length > 12)) {
+      throw appError.createError("First name must be between 3 and 12 characters", 400, "ERROR");
+    }
+  
+    if (lastName && (lastName.length < 3 || lastName.length > 12)) {
+      throw appError.createError("Last name must be between 3 and 12 characters", 400, "ERROR");
+    }
+  };
+    
 
 module.exports = {
   register,
   login,
+  updateUser,
 };

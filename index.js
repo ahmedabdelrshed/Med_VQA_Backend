@@ -2,8 +2,11 @@ const express = require("express");
 const connectDB = require("./DB/connectDB");
 const userRouter = require("./Routes/userRoutes");
 const { ERROR } = require("./utils/httpStatus");
+const passport = require("passport");
+const authRouter = require("./Routes/authRoutes");
 require("dotenv").config();
 const app = express();
+require("./Auth/auth"); // Import Passport config
 
 app.use(express.json());
 app.use("/uploads", express.static("uploads"));
@@ -19,6 +22,10 @@ app.use((error, req, res, next) => {
     .status(error.statusCode || 500)
     .json({ status: error.statusText || ERROR, error: error.message || null });
 });
+app.use(passport.initialize());
+
+app.use("/auth", authRouter);
+
 app.listen(port, () => {
   console.log("listening on port " + port);
 });

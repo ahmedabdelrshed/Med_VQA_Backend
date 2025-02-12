@@ -20,4 +20,24 @@ authRouter.get(
   }
 );
 
+// �� GitHub OAuth
+// http://localhost:4000/auth/github
+authRouter.get(
+  "/github",
+  passport.authenticate("github", {
+    scope: ["user:email"],
+  })
+);
+authRouter.get(
+  "/github/callback",
+  passport.authenticate("github", { session: false }),
+  (req, res) => {
+    const { token, user } = req.user;
+    res.json({ token, message: "Github Authentication Success" });
+
+    // 🔹 Redirect to frontend with JWT token
+    // res.redirect(`${process.env.FRONTEND_URL}/dashboard?token=${token}`);
+  }
+);
+
 module.exports = authRouter;

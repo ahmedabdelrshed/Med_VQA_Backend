@@ -6,8 +6,8 @@ const passport = require("passport");
 const authRouter = require("./Routes/authRoutes");
 require("dotenv").config();
 const app = express();
-require("./Auth/auth"); // Import Passport config
-
+require("./Auth/authGoogle"); // Import Passport config for Google
+require("./Auth/authGithub"); // Import AuthConfig for Github
 app.use(express.json());
 app.use("/uploads", express.static("uploads"));
 const port = process.env.PORT;

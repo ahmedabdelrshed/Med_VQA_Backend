@@ -6,7 +6,7 @@ const { register, verifyEmail, forgetPassword, resetPassword } = require("../con
 const { login } = require("../controllers/userController");
 const {updateUser } = require("../controllers/userController");
 const {contactUs}=require("../controllers/userController");
-const {upload,checkImageSize,saveImageToDisk} = require("../middlewares/upload");
+const {upload,checkImageSize} = require("../middlewares/upload");
 const verifyToken = require("../middlewares/verifyToken");
 
 
@@ -16,7 +16,7 @@ const verifyToken = require("../middlewares/verifyToken");
 const userRouter = express.Router();
     userRouter.post("/register", userSchema(),register);
     userRouter.post("/login",login);
-    userRouter.patch("/update",verifyToken,upload.single("avatar"),checkImageSize, saveImageToDisk,  updateUser);
+    userRouter.patch("/update",verifyToken,upload.single("avatar"),checkImageSize,   updateUser);
     userRouter.get('/emailVerification/:token', verifyEmail);
 userRouter.post("/contactUs", verifyToken, contactUs);
 userRouter.post('/forgetPassword', forgetPassword)

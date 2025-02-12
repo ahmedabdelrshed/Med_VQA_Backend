@@ -1,6 +1,4 @@
 const multer = require("multer");
-const path = require("path");
-const fs = require("fs");
 const imageSize = require("image-size");
 const appError = require("../utils/appError");
 
@@ -11,7 +9,14 @@ const fileFilter = (req, file, cb) => {
   if (allowedTypes.includes(file.mimetype)) {
     cb(null, true);
   } else {
-    cb(appError.createError("Only JPEG, PNG, and JPG files are allowed", 400, "VALIDATION_ERROR"), false);
+    cb(
+      appError.createError(
+        "Only JPEG, PNG, and JPG files are allowed",
+        400,
+        "VALIDATION_ERROR"
+      ),
+      false
+    );
   }
 };
 
@@ -25,45 +30,29 @@ const checkImageSize = (req, res, next) => {
     return next();
   }
 
-
-    const dimensions = imageSize(req.file.buffer); 
+  try {
+    const dimensions = imageSize(req.file.buffer); // Get image dimensions
     if (
       dimensions.width < minWidth ||
       dimensions.width > maxWidth ||
       dimensions.height < minHeight ||
       dimensions.height > maxHeight
     ) {
-        const errorMessage = `Image dimensions must be between ${minWidth}x${minHeight} and ${maxWidth}x${maxHeight} pixels.`;
-        const error = appError.createError(errorMessage, 400, "VALIDATION_ERROR");
-        return next(error);
-      }
-    
-      next();
-    };
+      return next(
+        appError.createError(
+          `Image dimensions must be between ${minWidth}x${minHeight} and ${maxWidth}x${maxHeight} pixels.`,
+          400,
+          "VALIDATION_ERROR"
+        )
+      );
+    }
 
-
-
-    const saveImageToDisk = (req, res, next) => {
-      if (!req.file) {
-        return next();
-      }
-    
-      try {
-        const fileName = `${Date.now()}-${req.file.originalname}`;
-        const filePath = path.join(__dirname, "../uploads", fileName);
-    
-        fs.writeFileSync(filePath, req.file.buffer);
-        req.file.path = filePath;
-        req.file.filename = fileName; 
-       
-        req.imagePath = filePath;
-    
-        next();
-      } catch (err) {
-        next(appError.createError("Error saving image to disk", 500, "INTERNAL_ERROR"));
-      }
-    };
+    next();
+  } catch (error) {
+    return next(appError.createError("Invalid image file", 400, "VALIDATION_ERROR"));
+  }
+};
 
 const upload = multer({ storage, fileFilter });
 
-module.exports = { upload, checkImageSize, saveImageToDisk };
+module.exports = { upload, checkImageSize };

@@ -29,7 +29,7 @@ const userSchema = new mongoose.Schema({
   },
   avatar:{
     type:String,
-    default:'uploads/defaultProfile.png'
+    default:'https://res.cloudinary.com/du04klrm0/image/upload/v1739392741/profile-pictures/rgh4ipfsu28pw5q8qac4.png'
   },
   isVerified: { type: Boolean, default: false },
 });

@@ -2,7 +2,6 @@ const User = require("../models/userModel");
 const { validationResult } = require("express-validator");
 const appError = require("../utils/appError");
 const { ERROR } = require("../utils/httpStatus");
-
 var bcrypt = require("bcryptjs");
 const createToken = require("../utils/createToken");
 const { isStrongPassword } = require("validator");
@@ -10,6 +9,12 @@ const jwt = require("jsonwebtoken");
 const {contactEmail} = require("../utils/SendVerificationEmail");
 const verificationEmail = require("../utils/SendVerificationEmail");
 const sendResetPasswordEmail = require("../utils/sendResetPasswordEmail");
+const cloudinary = require('../utils/cloudinaryConfig');
+const streamifier = require("streamifier");
+
+
+
+
 
 const register = async (req, res, next) => {
   const errors = validationResult(req);
@@ -85,49 +90,74 @@ const login =async (req, res, next) => {
   };
 
 };
+
+
 const updateUser = async (req, res, next) => {
   try {
     const userId = req.currentUser.userId;
-
     const user = await User.findById(userId).select("+password");
+
     if (!user) {
-      return next(appError.createError("User not found", 404, ERROR));
+      return next(appError.createError("User not found", 404, "ERROR"));
     }
 
     if (req.body.email) {
-      return next(appError.createError("Email cannot be updated", 400, ERROR));
+      return next(appError.createError("Email cannot be updated", 400, "ERROR"));
     }
 
+    
     await handlePasswordUpdate(req.body, user);
 
+    
     validateNameLength(req.body);
 
     if (req.file) {
-      req.body.avatar = `uploads/${req.file.filename}`;
+      const uploadStream = cloudinary.uploader.upload_stream(
+        { folder: "profile-pictures", public_id: userId },
+
+        async (error, result) => {
+          if (error) {
+            return next(appError.createError("Cloudinary Upload Failed", 500, "ERROR"));
+          }
+
+          req.body.avatar = result.secure_url; 
+
+          const updatedUser = await User.findByIdAndUpdate(userId, req.body, {
+            new: true,
+            runValidators: true,
+          });
+
+          if (!updatedUser) {
+            return next(appError.createError("User update failed", 500, "ERROR"));
+          }
+
+          res.json({
+            message: "Profile updated successfully",
+            updatedUser,
+          });
+        }
+      );
+
+      streamifier.createReadStream(req.file.buffer).pipe(uploadStream);
+    } else {
+      const updatedUser = await User.findByIdAndUpdate(userId, req.body, {
+        new: true,
+        runValidators: true,
+      });
+
+      if (!updatedUser) {
+        return next(appError.createError("User update failed", 500, "ERROR"));
+      }
+
+      res.json({
+        message: "Profile updated successfully",
+        updatedUser,
+      });
     }
-
-    const updatedUser = await User.findByIdAndUpdate(userId, req.body, {
-      new: true,
-      runValidators: true,
-    });
-
-    if (!updatedUser) {
-      return next(appError.createError("User update failed", 500, ERROR));
-    }
-
-    const response = {
-      message: "Profile updated successfully",
-      updatedUser,
-    };
-
-    
-
-    res.json(response);
   } catch (error) {
     next(error);
   }
 };
- 
 
 const contactUs = async (req, res, next) => {
   try {

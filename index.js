@@ -4,6 +4,7 @@ const userRouter = require("./Routes/userRoutes");
 const { ERROR } = require("./utils/httpStatus");
 const passport = require("passport");
 const authRouter = require("./Routes/authRoutes");
+const chatRouter = require("./Routes/chatRoutes");
 require("dotenv").config();
 const app = express();
 require("./Auth/authGoogle"); // Import Passport config for Google
@@ -17,15 +18,15 @@ app.get("/test", (req, res) => {
   res.send("API is running...");
 });
 app.use("/user", userRouter);
+app.use(passport.initialize());
+
+app.use("/auth", authRouter);
+app.use("/chat", chatRouter);
 app.use((error, req, res, next) => {
   res
     .status(error.statusCode || 500)
     .json({ status: error.statusText || ERROR, error: error.message || null });
 });
-app.use(passport.initialize());
-
-app.use("/auth", authRouter);
-
 app.listen(port, () => {
   console.log("listening on port " + port);
 });

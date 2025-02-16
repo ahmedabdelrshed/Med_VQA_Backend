@@ -38,7 +38,9 @@ const getChat = async (req, res, next) => {
     const { chatId } = req.params;
 
     if (!chatId) {
-      return next(appError.createError("Chat ID is required", 400, "VALIDATION_ERROR"));
+      return next(
+        appError.createError("Chat ID is required", 400, "VALIDATION_ERROR")
+      );
     }
 
     const chatExists = await Chat.exists({ _id: chatId });
@@ -49,7 +51,13 @@ const getChat = async (req, res, next) => {
     const questions = await Question.find({ chatId });
 
     if (questions.length === 0) {
-      return next(appError.createError("No questions found for this chat ID", 404, "NOT_FOUND"));
+      return next(
+        appError.createError(
+          "No questions found for this chat ID",
+          404,
+          "NOT_FOUND"
+        )
+      );
     }
 
     res.status(200).json({
@@ -57,8 +65,34 @@ const getChat = async (req, res, next) => {
       data: questions,
     });
   } catch (error) {
-    next(appError.createError("An error occurred while fetching questions", 500, "SERVER_ERROR", error));
+    next(
+      appError.createError(
+        "An error occurred while fetching questions",
+        500,
+        "SERVER_ERROR",
+        error
+      )
+    );
   }
 };
 
-module.exports = { createChat,getChat };
+const getAllChats = async (req, res, next) => {
+  const { userId } = req.currentUser;
+  const userExist = await User.findOne({ _id: userId });
+  if (!userExist) {
+    return next(appError.createError("User not found", 400, ERROR));
+  }
+  try {
+    const chats = await Chat.find({ userID: userId }).sort({ createdAt: -1 });
+    res.status(200).json({
+    success: true,
+    data: chats,
+    });
+  } catch (error) {
+    next(
+      appError.createError("An error occurred while fetching chats", 500, ERROR)
+    );
+  }
+};
+
+module.exports = { createChat, getChat ,getAllChats};

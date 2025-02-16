@@ -5,6 +5,7 @@ const { ERROR } = require("./utils/httpStatus");
 const passport = require("passport");
 const authRouter = require("./Routes/authRoutes");
 const chatRouter = require("./Routes/chatRoutes");
+const questionRouter = require("./Routes/questionsRoutes");
 require("dotenv").config();
 const app = express();
 require("./Auth/authGoogle"); // Import Passport config for Google
@@ -22,6 +23,7 @@ app.use(passport.initialize());
 
 app.use("/auth", authRouter);
 app.use("/chat", chatRouter);
+app.use("/question", questionRouter);
 app.use((error, req, res, next) => {
   res
     .status(error.statusCode || 500)

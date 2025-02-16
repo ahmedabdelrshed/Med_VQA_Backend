@@ -1,7 +1,7 @@
 const User = require("../models/userModel");
 const Chat = require("../models/chatModel");
 const appError = require("../utils/appError");
-const { ERROR } = require("../utils/httpStatus");
+const { ERROR, FAIL } = require("../utils/httpStatus");
 const Question = require("../models/questionsModel");
 
 const createChat = async (req, res, next) => {
@@ -85,8 +85,8 @@ const getAllChats = async (req, res, next) => {
   try {
     const chats = await Chat.find({ userID: userId }).sort({ createdAt: -1 });
     res.status(200).json({
-    success: true,
-    data: chats,
+      success: true,
+      data: chats,
     });
   } catch (error) {
     next(
@@ -95,4 +95,31 @@ const getAllChats = async (req, res, next) => {
   }
 };
 
-module.exports = { createChat, getChat ,getAllChats};
+const deleteChat = async (req, res, next) => {
+  const { userId } = req.currentUser;
+  const userExist = await User.findOne({ _id: userId });
+  if (!userExist) {
+    return next(appError.createError("User not found", 400, ERROR));
+  }
+  const { chatId } = req.params;
+  if (!chatId) {
+    return next(appError.createError("Chat ID is required", 400, ERROR));
+  }
+
+  const chatExists = await Chat.exists({ _id: chatId });
+  if (!chatExists) {
+    return next(appError.createError("Chat not found", 404, FAIL));
+  }
+  try {
+    await Question.deleteMany({ chatId });
+    await Chat.findByIdAndDelete(chatId);
+    res
+      .status(200)
+      .json({ success: true, message: "Deleted chat successfully ✅" });
+  } catch (error) {
+    next(
+      appError.createError("An error occurred while deleting chat", 500, ERROR)
+    );
+  }
+};
+module.exports = { createChat, getChat, getAllChats ,deleteChat};

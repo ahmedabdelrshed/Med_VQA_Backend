@@ -3,13 +3,11 @@ const Chat = require("../models/chatModel");
 const appError = require("../utils/appError");
 const { ERROR, FAIL ,SUCCESS} = require("../utils/httpStatus");
 const Question = require("../models/questionsModel");
+const { checkUserExist } = require("../services/userService");
 
 const createChat = async (req, res, next) => {
-  const { userId } = req.currentUser;
-  const userExist = await User.findOne({ _id: userId });
-  if (!userExist) {
-    throw appError.createError("User not found", 400, ERROR);
-  }
+  const { email } = req.currentUser;
+  checkUserExist(email,next)
   try {
     const countsChatsExists = await Chat.countDocuments({ userID: userId }) 
     const defaultTitle= `New chat ${countsChatsExists + 1}`
@@ -26,11 +24,8 @@ const createChat = async (req, res, next) => {
 
 const getChat = async (req, res, next) => {
   try {
-  const { userId } = req.currentUser;
-  const userExist = await User.findOne({ _id: userId });
-  if (!userExist) {
-    return next(appError.createError("User not found", 400, ERROR));
-  }
+    const { email } = req.currentUser;
+    checkUserExist(email,next)
     const { chatId } = req.params;
 
     if (!chatId) {
@@ -73,11 +68,8 @@ const getChat = async (req, res, next) => {
 };
 
 const getAllChats = async (req, res, next) => {
-  const { userId } = req.currentUser;
-  const userExist = await User.findOne({ _id: userId });
-  if (!userExist) {
-    return next(appError.createError("User not found", 400, ERROR));
-  }
+  const { email } = req.currentUser;
+  checkUserExist(email,next)
   try {
     const chats = await Chat.find({ userID: userId }).sort({ createdAt: -1 });
     res.status(200).json({
@@ -92,11 +84,8 @@ const getAllChats = async (req, res, next) => {
 };
 
 const deleteChat = async (req, res, next) => {
-  const { userId } = req.currentUser;
-  const userExist = await User.findOne({ _id: userId });
-  if (!userExist) {
-    return next(appError.createError("User not found", 400, ERROR));
-  }
+  const { email } = req.currentUser;
+  checkUserExist(email,next)
   const { chatId } = req.params;
   if (!chatId) {
     return next(appError.createError("Chat ID is required", 400, ERROR));
@@ -119,11 +108,8 @@ const deleteChat = async (req, res, next) => {
   }
 };
 const updateChat = async(req,res,next) => {
-  const { userId } = req.currentUser;
-  const userExist = await User.findOne({ _id: userId }); 
-  if (!userExist) {
-    return next(appError.createError("User not found", 400, ERROR));
-  }
+  const { email } = req.currentUser;
+  checkUserExist(email,next)
   const { chatId } = req.params;
   if (!chatId) {
     return next(appError.createError("Chat ID is required", 400, ERROR));

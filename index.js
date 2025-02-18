@@ -8,8 +8,8 @@ const chatRouter = require("./Routes/chatRoutes");
 const questionRouter = require("./Routes/questionsRoutes");
 require("dotenv").config();
 const app = express();
-require("./Auth/authGoogle"); 
-require("./Auth/authGithub");
+require("./config/Auth/authGoogle");
+require("./config/Auth/authGithub");
 app.use(express.json());
 const port = process.env.PORT;
 

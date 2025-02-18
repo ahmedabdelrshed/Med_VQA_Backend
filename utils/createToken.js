@@ -7,7 +7,7 @@ const createToken = (user, expireDate) => {
       email: user.email,
     },
     process.env.JWT_SECRET,
-    { expiresIn: expireDate || "1h" }
+    { expiresIn: expireDate || "1d" }
   );
   return token;
 };

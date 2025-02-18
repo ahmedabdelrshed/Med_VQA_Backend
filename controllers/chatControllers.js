@@ -6,23 +6,14 @@ const Question = require("../models/questionsModel");
 
 const createChat = async (req, res, next) => {
   const { userId } = req.currentUser;
-  const title = req.body.title;
-  if (!title) {
-    const error = appError.createError("Title is required", 400, ERROR);
-    return next(error);
-  }
   const userExist = await User.findOne({ _id: userId });
   if (!userExist) {
     throw appError.createError("User not found", 400, ERROR);
   }
-  const chatExist = await Chat.findOne({ title, userID: userId });
-  if (chatExist) {
-    return next(
-      appError.createError("Chat with this title already exists", 400, ERROR)
-    );
-  }
   try {
-    const newChat = new Chat({ userID: userId, title });
+    const countsChatsExists = await Chat.countDocuments({ userID: userId }) 
+    const defaultTitle= `New chat ${countsChatsExists + 1}`
+    const newChat = new Chat({ userID: userId, title : defaultTitle});
     await newChat.save();
     return res.status(201).json({
       status: "success",

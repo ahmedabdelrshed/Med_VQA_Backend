@@ -27,4 +27,49 @@ const createHashPassword = async (password) => {
   return await bcrypt.hash(password, 10);
 };
 
-module.exports = { checkUserExist, createHashPassword, checkStrongPassword };
+const handlePasswordUpdate = async (updateData, user) => {
+  if (updateData.password && updateData.oldPassword) {
+    const matchedPassword = await bcrypt.compare(
+      updateData.oldPassword,
+      user.password
+    );
+    if (!matchedPassword) {
+      throw appError.createError("Incorrect old password", 400, "ERROR");
+    }
+    if (!isStrongPassword(updateData.password)) {
+      throw appError.createError(
+        "Password should be at least 8 characters long and contain at least one uppercase letter, one lowercase letter, one number, and one special character",
+        400,
+        "ERROR"
+      );
+    }
+    const hashedPassword = createHashPassword(updateData.password);
+    updateData.password = hashedPassword;
+
+    delete updateData.oldPassword;
+  } else if (updateData.password && !updateData.oldPassword) {
+    throw appError.createError("Old password is required", 400, "ERROR");
+  }
+};
+
+const validateNameLength = (updateData) => {
+  const { firstName, lastName } = updateData;
+
+  checkName(firstName,"First name");
+
+  checkName(lastName,"Last name");
+};
+
+const checkName = (name,message) => {
+  if (name) {
+    if (name.length < 3 || name.length > 12) {
+      throw appError.createError(
+        `${message} must be between 3 and 12 characters`,
+        400,
+        "ERROR"
+      );
+    }
+  }
+};
+
+module.exports = { checkUserExist, createHashPassword, checkStrongPassword, handlePasswordUpdate, validateNameLength };

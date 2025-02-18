@@ -1,19 +1,25 @@
 const User = require("../models/userModel");
 const { validationResult } = require("express-validator");
-const appError = require("../utils/appError");
 const { ERROR } = require("../utils/httpStatus");
-var bcrypt = require("bcryptjs");
-const createToken = require("../utils/createToken");
-const { isStrongPassword } = require("validator");
 const jwt = require("jsonwebtoken");
+const appError = require("../utils/appError");
+const bcrypt = require("bcryptjs");
+const streamifier = require("streamifier");
+const cloudinary = require("../config/cloudinaryConfig");
+
+const createToken = require("../utils/createToken");
 const {
   contactEmail,
   verificationEmail,
 } = require("../utils/SendVerificationEmail");
 const sendResetPasswordEmail = require("../utils/sendResetPasswordEmail");
-const cloudinary = require("../config/cloudinaryConfig");
-const streamifier = require("streamifier");
-const { checkUserExist, hashPassword, createHashPassword, checkStrongPassword } = require("../services/userService");
+const {
+  checkUserExist,
+  createHashPassword,
+  checkStrongPassword,
+  handlePasswordUpdate,
+  validateNameLength,
+} = require("../services/userService");
 
 const register = async (req, res, next) => {
   const errors = validationResult(req);
@@ -24,7 +30,7 @@ const register = async (req, res, next) => {
   checkUserExist(email, next);
   checkStrongPassword(password, next);
   try {
-    const hashPassword = createHashPassword(password)
+    const hashPassword = createHashPassword(password);
     const newUser = new User({ ...req.body, password: hashPassword });
     const token = createToken(newUser, "15m");
     await newUser.save();
@@ -73,10 +79,8 @@ const login = async (req, res, next) => {
 
 const updateUser = async (req, res, next) => {
   try {
-    const {email,userId} = req.currentUser;
+    const { email, userId } = req.currentUser;
     const user = await User.findById(userId).select("+password");
-
-   checkUserExist(email,next)
 
     if (req.body.email) {
       return next(
@@ -162,50 +166,6 @@ const contactUs = async (req, res, next) => {
   }
 };
 
-const handlePasswordUpdate = async (updateData, user) => {
-  if (updateData.password && updateData.oldPassword) {
-    const matchedPassword = await bcrypt.compare(
-      updateData.oldPassword,
-      user.password
-    );
-    if (!matchedPassword) {
-      throw appError.createError("Incorrect old password", 400, "ERROR");
-    }
-    if (!isStrongPassword(updateData.password)) {
-      throw appError.createError(
-        "Password should be at least 8 characters long and contain at least one uppercase letter, one lowercase letter, one number, and one special character",
-        400,
-        "ERROR"
-      );
-    }
-    const hashedPassword = await bcrypt.hash(updateData.password, 10);
-    updateData.password = hashedPassword;
-
-    delete updateData.oldPassword;
-  } else if (updateData.password && !updateData.oldPassword) {
-    throw appError.createError("Old password is required", 400, "ERROR");
-  }
-};
-const validateNameLength = (updateData) => {
-  const { firstName, lastName } = updateData;
-
-  if (firstName && (firstName.length < 3 || firstName.length > 12)) {
-    throw appError.createError(
-      "First name must be between 3 and 12 characters",
-      400,
-      "ERROR"
-    );
-  }
-
-  if (lastName && (lastName.length < 3 || lastName.length > 12)) {
-    throw appError.createError(
-      "Last name must be between 3 and 12 characters",
-      400,
-      "ERROR"
-    );
-  }
-};
-
 const verifyEmail = async (req, res) => {
   const { token } = req.params;
   if (!token) {
@@ -247,29 +207,21 @@ const forgetPassword = async (req, res) => {
   await sendResetPasswordEmail(email, token);
   res.json({ message: "Reset password link sent successfully" });
 };
-const resetPassword = async (req, res) => {
+const resetPassword = async (req, res,next) => {
   const token = req.params.token;
   if (!token) {
     return res.status(400).json({ error: "Token is required" });
   }
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    const userId = decoded.userId;
-    const user = await User.findById(userId);
-    if (!user) {
-      return res.status(404).json({ error: "User not found" });
-    }
+    const email = decoded.email;
     const { newPassword } = req.body;
     if (!newPassword) {
       return res.status(400).json({ error: "Password is required" });
     }
-    if (!isStrongPassword(newPassword)) {
-      return res.status(400).json({
-        error:
-          "Password should be at least 8 characters long and contain at least one uppercase letter, one lowercase letter, one number, and one special character",
-      });
-    }
-    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    checkStrongPassword(newPassword, next);
+    const user = await User.findOne({ email });
+    const hashedPassword = await createHashPassword(newPassword);
     user.password = hashedPassword;
     await user.save();
     res.json({ message: "Password reset successfully" });

@@ -1,6 +1,6 @@
 const express = require("express");
 const { getQuestionsByChatId } = require("../controllers/questionController");
-const { upload } = require("../utils/cloudinaryConfig");
+const upload  = require("../middlewares/uploadQuestion");
 const { addQuestion } = require("../controllers/questionController");
 const verifyToken = require('../middlewares/verifyToken');
 const router = express.Router();

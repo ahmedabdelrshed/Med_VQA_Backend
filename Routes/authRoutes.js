@@ -1,5 +1,7 @@
 const passport = require("passport");
 const express = require("express");
+const { register, login } = require("../controllers/userController");
+const userSchema = require("../validations/userValidation");
 const authRouter = express.Router();
 
 // �� Google OAuth
@@ -40,4 +42,6 @@ authRouter.get(
   }
 );
 
+authRouter.post("/register", userSchema(),register)
+authRouter.post("/login",login);
 module.exports = authRouter;

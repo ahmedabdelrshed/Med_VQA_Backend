@@ -8,16 +8,13 @@ const chatRouter = require("./Routes/chatRoutes");
 const questionRouter = require("./Routes/questionsRoutes");
 require("dotenv").config();
 const app = express();
-require("./Auth/authGoogle"); // Import Passport config for Google
-require("./Auth/authGithub"); // Import AuthConfig for Github
+require("./Auth/authGoogle"); 
+require("./Auth/authGithub");
 app.use(express.json());
-app.use("/uploads", express.static("uploads"));
 const port = process.env.PORT;
 
 connectDB();
-app.get("/test", (req, res) => {
-  res.send("API is running...");
-});
+
 app.use("/user", userRouter);
 app.use(passport.initialize());
 

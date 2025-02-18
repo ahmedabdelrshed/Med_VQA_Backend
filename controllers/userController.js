@@ -112,7 +112,7 @@ const updateUser = async (req, res, next) => {
 
     if (req.file) {
       const uploadStream = cloudinary.uploader.upload_stream(
-        { folder: "profile-pictures", public_id: userId },
+        { folder: "med_VQA_Data/profile-pictures", public_id: userId },
 
         async (error, result) => {
           if (error) {

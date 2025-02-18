@@ -5,7 +5,7 @@ const cloudinary = require('../utils/cloudinaryConfig');
 const storage = new CloudinaryStorage({
     cloudinary,
     params: {
-      folder: "questions_images",  
+      folder: "med_VQA_Data/questions_images",  
       public_id: (req, file) => {
         const originalNameWithoutExtension = file.originalname.replace(/\.[^/.]+$/, "");
         return `${Date.now()}-${originalNameWithoutExtension}`;

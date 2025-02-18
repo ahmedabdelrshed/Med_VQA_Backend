@@ -1,7 +1,7 @@
 const User = require("../models/userModel");
 const Chat = require("../models/chatModel");
 const appError = require("../utils/appError");
-const { ERROR, FAIL } = require("../utils/httpStatus");
+const { ERROR, FAIL ,SUCCESS} = require("../utils/httpStatus");
 const Question = require("../models/questionsModel");
 
 const createChat = async (req, res, next) => {
@@ -35,6 +35,11 @@ const createChat = async (req, res, next) => {
 
 const getChat = async (req, res, next) => {
   try {
+  const { userId } = req.currentUser;
+  const userExist = await User.findOne({ _id: userId });
+  if (!userExist) {
+    return next(appError.createError("User not found", 400, ERROR));
+  }
     const { chatId } = req.params;
 
     if (!chatId) {
@@ -122,4 +127,35 @@ const deleteChat = async (req, res, next) => {
     );
   }
 };
-module.exports = { createChat, getChat, getAllChats ,deleteChat};
+const updateChat = async(req,res,next) => {
+  const { userId } = req.currentUser;
+  const userExist = await User.findOne({ _id: userId }); 
+  if (!userExist) {
+    return next(appError.createError("User not found", 400, ERROR));
+  }
+  const { chatId } = req.params;
+  if (!chatId) {
+    return next(appError.createError("Chat ID is required", 400, ERROR));
+  }
+  const chatExists = await Chat.exists({ _id: chatId });
+  if (!chatExists) {
+    return next(appError.createError("Chat not found", 404, FAIL));
+  }
+  const { title } = req.body;
+  if (!title) {
+    return next(appError.createError("Title is required", 400, ERROR));
+  }
+  try {
+    const updatedChat = await Chat.findByIdAndUpdate(
+      chatId,
+       { title },
+       { new: true });
+    res.status(200).json({status:SUCCESS, updatedChat});
+} catch (error) {
+    next(
+      appError.createError("An error occurred while updating chat", 500, ERROR)
+    );
+  }
+};
+
+module.exports = { createChat, getChat, getAllChats ,deleteChat,updateChat};

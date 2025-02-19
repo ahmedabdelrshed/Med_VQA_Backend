@@ -8,7 +8,6 @@ const chatSchema = mongoose.Schema({
     type: String,
     required: true,
     trim: true,
-    unique: true,
   },
   createdAt: {
     type: Date,

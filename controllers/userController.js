@@ -69,8 +69,14 @@ const login = async (req, res, next) => {
     }
     const token = createToken(user);
     res.json({
-      message: "Login successful",
       token: token,
+      user: {
+        id: user._id,
+        email: user.email,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        avatar: user.avatar,
+      }
     });
   } catch (error) {
     next(error);

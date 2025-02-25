@@ -51,7 +51,7 @@ const login = async (req, res, next) => {
     }
     const user = await User.findOne({ email }).select("+password");
     if (!user) {
-      const error = appError.createError("User not found", 404, ERROR);
+      const error = appError.createError("Email or Password are not Correct", 404, ERROR);
       return next(error);
     }
     if (!user.isVerified) {

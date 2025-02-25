@@ -6,13 +6,19 @@ const passport = require("passport");
 const authRouter = require("./Routes/authRoutes");
 const chatRouter = require("./Routes/chatRoutes");
 const questionRouter = require("./Routes/questionsRoutes");
+const cors = require("cors");
 require("dotenv").config();
 const app = express();
 require("./config/Auth/authGoogle");
 require("./config/Auth/authGithub");
 app.use(express.json());
 const port = process.env.PORT;
-
+app.use(
+  cors({
+    origin: ["http://localhost:5173"],
+    credentials: true,
+  })
+);
 connectDB();
 
 app.use("/user", userRouter);

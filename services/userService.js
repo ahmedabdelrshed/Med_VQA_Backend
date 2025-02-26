@@ -72,4 +72,6 @@ const checkName = (name,message) => {
   }
 };
 
-module.exports = { checkUserExist, createHashPassword, checkStrongPassword, handlePasswordUpdate, validateNameLength };
+
+
+module.exports = { checkUserExist, createHashPassword, checkStrongPassword, handlePasswordUpdate, validateNameLength, };

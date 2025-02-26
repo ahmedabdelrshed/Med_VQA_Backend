@@ -7,12 +7,14 @@ const {
   verifyEmail,
   forgetPassword,
   resetPassword,
+  resendVerificationEmail,
 } = require("../controllers/userController");
 const { login } = require("../controllers/userController");
 const { updateUser } = require("../controllers/userController");
 const { contactUs } = require("../controllers/userController");
 const { upload, checkImageSize } = require("../middlewares/upload");
 const verifyToken = require("../middlewares/verifyToken");
+
 
 const userRouter = express.Router();
 
@@ -24,6 +26,7 @@ userRouter.patch(
   updateUser
 );
 userRouter.get("/emailVerification/:token", verifyEmail);
+userRouter.post("/resendVerification", resendVerificationEmail);
 userRouter.post("/contactUs", verifyToken, contactUs);
 userRouter.post("/forgetPassword", forgetPassword);
 userRouter.post("/reset-password/:token", resetPassword);

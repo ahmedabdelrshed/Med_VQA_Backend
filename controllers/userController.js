@@ -30,7 +30,7 @@ const register = async (req, res, next) => {
   checkUserExist(email, next);
   checkStrongPassword(password, next);
   try {
-    const hashPassword = createHashPassword(password);
+    const hashPassword =await createHashPassword(password);
     const newUser = new User({ ...req.body, password: hashPassword });
     const token = createToken(newUser, "15m");
     await newUser.save();
@@ -235,6 +235,28 @@ const resetPassword = async (req, res,next) => {
     return res.status(401).json({ error: "Invalid token" });
   }
 };
+
+const resendVerificationEmail = async (req, res, next) => {
+  try {
+    const { email } = req.body;
+    const user = await User.findOne({ email });
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    if (user.isVerified) {
+      return res.status(400).json({ message: "User is already verified" });
+    }
+
+    const token = createToken(user, "15m");
+    await verificationEmail(user.email, token);
+
+    res.status(200).json({ message: "Verification email resent successfully." });
+  } catch (error) {
+    next(error);
+  }
+};
 module.exports = {
   register,
   login,
@@ -243,4 +265,5 @@ module.exports = {
   contactUs,
   forgetPassword,
   resetPassword,
+  resendVerificationEmail,
 };

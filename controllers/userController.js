@@ -214,13 +214,8 @@ const forgetPassword = async (req, res) => {
   res.json({ message: "Reset password link sent successfully" });
 };
 const resetPassword = async (req, res,next) => {
-  const token = req.params.token;
-  if (!token) {
-    return res.status(400).json({ error: "Token is required" });
-  }
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    const email = decoded.email;
+    const email = req.currentUser.email;
     const { newPassword } = req.body;
     if (!newPassword) {
       return res.status(400).json({ error: "Password is required" });

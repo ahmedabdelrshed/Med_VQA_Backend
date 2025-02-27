@@ -1,23 +1,15 @@
 const express = require("express");
-const userSchema = require("../validations/userValidation");
-const { validationResult } = require("express-validator");
-const User = require("../models/userModel");
 const {
-  register,
   verifyEmail,
   forgetPassword,
   resetPassword,
   resendVerificationEmail,
   checkUserEmail,
 } = require("../controllers/userController");
-const { login } = require("../controllers/userController");
 const { updateUser } = require("../controllers/userController");
 const { contactUs } = require("../controllers/userController");
 const { upload, checkImageSize } = require("../middlewares/upload");
 const verifyToken = require("../middlewares/verifyToken");
-
-
-
 
 const userRouter = express.Router();
 
@@ -33,5 +25,5 @@ userRouter.post("/resendVerification", resendVerificationEmail);
 userRouter.post("/checkEmail", checkUserEmail);
 userRouter.post("/contactUs", verifyToken, contactUs);
 userRouter.post("/forgetPassword", forgetPassword);
-userRouter.post("/reset-password/:token", resetPassword);
+userRouter.post("/reset-password", verifyToken, resetPassword);
 module.exports = userRouter;

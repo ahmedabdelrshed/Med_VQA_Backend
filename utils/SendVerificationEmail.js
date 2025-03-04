@@ -19,7 +19,7 @@ const verificationEmail = async (email, token) => {
 
     You're almost there! Please verify your email address by clicking the link below:
     
-    🔗 [Verify My Email](http://localhost:4000/user/emailVerification/${token})
+    🔗 [Verify My Email](${process.env.FRONTEND_URL}/confirm_Verification_Email/${token})
     
     ⚠️ This link is valid for only **15 minutes**. If it expires, you'll need to request a new verification email.
     
@@ -39,22 +39,21 @@ const verificationEmail = async (email, token) => {
   });
 };
 
-const contactEmail =async (email, message) => {
+const contactEmail = async (email, message) => {
   try {
-  const mailOptions = {
-    from: email, 
-    to: process.env.EMAIL,
-    subject: "New Contact Us Message",
-    text: `From: ${email}\n\nMessage:\n${message}`,
-  };
+    const mailOptions = {
+      from: email,
+      to: process.env.EMAIL,
+      subject: "New Contact Us Message",
+      text: `From: ${email}\n\nMessage:\n${message}`,
+    };
 
-  await transporter.sendMail(mailOptions);
-  return { success: true, message: "Message sent successfully" };
-}
-catch (error) {
-  console.error("Error sending email:", error);
-  return { success: false, message: "Failed to send message" };
-}
+    await transporter.sendMail(mailOptions);
+    return { success: true, message: "Message sent successfully" };
+  } catch (error) {
+    console.error("Error sending email:", error);
+    return { success: false, message: "Failed to send message" };
+  }
 };
 
-module.exports = {verificationEmail,contactEmail};
+module.exports = { verificationEmail, contactEmail };

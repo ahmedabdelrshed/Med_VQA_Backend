@@ -20,7 +20,7 @@ userRouter.patch(
   checkImageSize,
   updateUser
 );
-userRouter.get("/emailVerification/:token", verifyEmail);
+userRouter.get("/emailVerification",verifyToken, verifyEmail);
 userRouter.post("/resendVerification", resendVerificationEmail);
 userRouter.post("/checkEmail", checkUserEmail);
 userRouter.post("/contactUs", verifyToken, contactUs);

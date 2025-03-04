@@ -172,15 +172,10 @@ const contactUs = async (req, res, next) => {
   }
 };
 
-const verifyEmail = async (req, res) => {
-  const { token } = req.params;
-  if (!token) {
-    return res.status(400).json({ error: "Token is required" });
-  }
+const verifyEmail = async (req, res,next) => {
+  const email = req.currentUser.email;
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    const userEmail = decoded.email;
-    const user = await User.findOne({ email: userEmail });
+    const user = await User.findOne({ email });
     if (!user) {
       return res.status(404).json({ error: "User not found" });
     }
@@ -198,7 +193,7 @@ const verifyEmail = async (req, res) => {
       message: "User verified successfully you can login successfully",
     });
   } catch (err) {
-    const error = appError.createError("Invalid token", 401, ERROR);
+    const error = appError.createError("Error When Verify Your Account Please try again", 400, ERROR);
     return next(error);
   }
 };

@@ -72,7 +72,6 @@ const login = async (req, res, next) => {
           firstName: user.firstName,
           lastName: user.lastName,
           avatar: user.avatar,
-          expireDate: expireDate,
           
         },
       });

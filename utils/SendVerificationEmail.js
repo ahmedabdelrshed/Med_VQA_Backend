@@ -39,13 +39,13 @@ const verificationEmail = async (email, token) => {
   });
 };
 
-const contactEmail = async (email, message) => {
+const contactEmail = async (email, firstName, lastName, message) => {
   try {
     const mailOptions = {
       from: email,
       to: process.env.EMAIL,
       subject: "New Contact Us Message",
-      text: `From: ${email}\n\nMessage:\n${message}`,
+      text: `From: ${firstName} ${lastName} \n Email: ${email}\n\nMessage:\n${message}`,
     };
 
     await transporter.sendMail(mailOptions);
@@ -55,5 +55,6 @@ const contactEmail = async (email, message) => {
     return { success: false, message: "Failed to send message" };
   }
 };
+
 
 module.exports = { verificationEmail, contactEmail };

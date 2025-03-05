@@ -18,7 +18,7 @@ userRouter.patch(
   updateUser
 );
 
-userRouter.post("/contactUs", verifyToken, contactUs);
+userRouter.post("/contactUs", contactUs);
 userRouter.post("/forgetPassword", forgetPassword);
 userRouter.post("/reset-password", verifyToken, resetPassword);
 module.exports = userRouter;

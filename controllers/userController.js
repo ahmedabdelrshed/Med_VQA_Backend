@@ -9,6 +9,7 @@ const {
   validateNameLength,
 } = require("../services/userService");
 const createToken = require("../utils/createToken");
+const { contactEmail } = require("../utils/SendVerificationEmail");
 
 const updateUser = async (req, res, next) => {
   try {
@@ -78,26 +79,24 @@ const updateUser = async (req, res, next) => {
 
 const contactUs = async (req, res, next) => {
   try {
-    const userEmail = req.currentUser?.email;
-    const message = req.body?.message;
+    const { email, firstName, lastName, message } = req.body;
 
-    if (!message) {
-      return next(appError.createError("Message is required", 400, "ERROR"));
+    if (!email || !firstName || !lastName || !message) {
+      return next(appError.createError("All fields are required", 400, "ERROR"));
     }
 
-    const result = await contactEmail(userEmail, message);
+    const result = await contactEmail(email, firstName, lastName, message);
 
     if (!result.success) {
       return next(appError.createError(result.message, 500, "ERROR"));
     }
 
-    res
-      .status(200)
-      .json({ success: true, message: "Message sent successfully" });
+    res.status(200).json({ success: true, message: "Message sent successfully" });
   } catch (error) {
     next(error);
   }
 };
+
 
 const forgetPassword = async (req, res) => {
   const { email } = req.body;

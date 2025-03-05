@@ -33,44 +33,55 @@ const register = async (req, res, next) => {
 };
 
 const login = async (req, res, next) => {
-  try {
-    const { email, password } = req.body;
-    if (!email || !password) {
-      return res.status(400).json({ error: "Email and password are required" });
+    try {
+      const { email, password, rememberMe } = req.body; 
+  
+      if (!email || !password) {
+        return res.status(400).json({ error: "Email and password are required" });
+      }
+  
+      const user = await User.findOne({ email }).select("+password");
+      if (!user) {
+        const error = appError.createError("Email or Password are not correct", 404, "ERROR");
+        return next(error);
+      }
+  
+      if (!user.isVerified) {
+        const error = appError.createError(
+          "Email is not verified. Please check your email to verify your account.",
+          403,
+          "ERROR"
+        );
+        return next(error);
+      }
+  
+      const matchedPassword = await bcrypt.compare(password, user.password);
+      if (!matchedPassword) {
+        const error = appError.createError("Incorrect Password", 401, "ERROR");
+        return next(error);
+      }
+  
+      const expireDate = rememberMe ? "7d" : "1d";
+      const token = createToken(user, expireDate);
+  
+      res.json({
+        token: token,
+        user: {
+          id: user._id,
+          email: user.email,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          avatar: user.avatar,
+          expireDate: expireDate,
+          
+        },
+      });
+    } catch (error) {
+      next(error);
     }
-    const user = await User.findOne({ email }).select("+password");
-    if (!user) {
-      const error = appError.createError("Email or Password are not correct", 404, "ERROR");
-      return next(error);
-    }
-    if (!user.isVerified) {
-      const error = appError.createError(
-        "Email is not verified. Please check your email to verify your account.",
-        403,
-        "ERROR"
-      );
-      return next(error);
-    }
-    const matchedPassword = await bcrypt.compare(password, user.password);
-    if (!matchedPassword) {
-      const error = appError.createError("Incorrect Password", 401, "ERROR");
-      return next(error);
-    }
-    const token = createToken(user);
-    res.json({
-      token: token,
-      user: {
-        id: user._id,
-        email: user.email,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        avatar: user.avatar,
-      },
-    });
-  } catch (error) {
-    next(error);
-  }
-};
+  };
+  
+  
 
 const verifyEmail = async (req, res, next) => {
   const email = req.currentUser.email;

@@ -1,7 +1,8 @@
 const passport = require("passport");
 const express = require("express");
-const { register, login } = require("../controllers/userController");
+const { register, login, verifyEmail, resendVerificationEmail, checkUserEmail } = require("../controllers/authController");
 const userSchema = require("../validations/userValidation");
+const verifyToken = require("../middlewares/verifyToken");
 const authRouter = express.Router();
 
 // �� Google OAuth
@@ -43,5 +44,9 @@ authRouter.get(
 );
 
 authRouter.post("/register", userSchema(),register)
+authRouter.post("/checkEmail", checkUserEmail);
 authRouter.post("/login",login);
+
+authRouter.get("/emailVerification",verifyToken, verifyEmail);
+authRouter.post("/resendVerification", resendVerificationEmail);
 module.exports = authRouter;

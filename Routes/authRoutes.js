@@ -1,6 +1,12 @@
 const passport = require("passport");
 const express = require("express");
-const { register, login, verifyEmail, resendVerificationEmail, checkUserEmail } = require("../controllers/authController");
+const {
+  register,
+  login,
+  verifyEmail,
+  resendVerificationEmail,
+  checkUserEmail,
+} = require("../controllers/authController");
 const userSchema = require("../validations/userValidation");
 const verifyToken = require("../middlewares/verifyToken");
 const authRouter = express.Router();
@@ -17,9 +23,12 @@ authRouter.get(
   passport.authenticate("google", { session: false }),
   (req, res) => {
     const { token, user } = req.user;
-    res.json({ token, message: "Google Authentication Success" });
+    // res.json({ token, message: "Google Authentication Success" });
     // 🔹 Redirect to frontend with JWT token
-    // res.redirect(`${process.env.FRONTEND_URL}/dashboard?token=${token}`);
+    const encodedUser = encodeURIComponent(JSON.stringify(user));
+    res.redirect(
+      `${process.env.FRONTEND_URL}/authSuccess?token=${token}&user=${encodedUser}`
+    );
   }
 );
 
@@ -36,17 +45,18 @@ authRouter.get(
   passport.authenticate("github", { session: false }),
   (req, res) => {
     const { token, user } = req.user;
-    res.json({ token, message: "Github Authentication Success" });
-
     // 🔹 Redirect to frontend with JWT token
-    // res.redirect(`${process.env.FRONTEND_URL}/dashboard?token=${token}`);
+    const encodedUser = encodeURIComponent(JSON.stringify(user));
+    res.redirect(
+      `${process.env.FRONTEND_URL}/authSuccess?token=${token}&user=${encodedUser}`
+    );
   }
 );
 
-authRouter.post("/register", userSchema(),register)
+authRouter.post("/register", userSchema(), register);
 authRouter.post("/checkEmail", checkUserEmail);
-authRouter.post("/login",login);
+authRouter.post("/login", login);
 
-authRouter.get("/emailVerification",verifyToken, verifyEmail);
+authRouter.get("/emailVerification", verifyToken, verifyEmail);
 authRouter.post("/resendVerification", resendVerificationEmail);
 module.exports = authRouter;

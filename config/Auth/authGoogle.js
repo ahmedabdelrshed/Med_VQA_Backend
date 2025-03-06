@@ -26,6 +26,13 @@ passport.use(
         }
 
         const token = createToken(user);
+        user = {
+          id: user._id,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          email: user.email,
+          avatar: user.avatar,
+        }
 
         return done(null, { user, token });
       } catch (error) {

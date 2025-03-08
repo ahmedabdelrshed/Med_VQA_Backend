@@ -7,6 +7,8 @@ const sendResetPasswordEmail = require("../utils/sendResetPasswordEmail");
 const {
   handlePasswordUpdate,
   validateNameLength,
+  checkStrongPassword,
+  createHashPassword,
 } = require("../services/userService");
 const createToken = require("../utils/createToken");
 const { contactEmail } = require("../utils/SendVerificationEmail");

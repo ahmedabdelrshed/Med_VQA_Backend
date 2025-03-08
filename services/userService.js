@@ -43,7 +43,7 @@ const handlePasswordUpdate = async (updateData, user) => {
         "ERROR"
       );
     }
-    const hashedPassword = createHashPassword(updateData.password);
+    const hashedPassword =await createHashPassword(updateData.password);
     updateData.password = hashedPassword;
 
     delete updateData.oldPassword;

@@ -88,19 +88,31 @@ const deleteUserImage = async (req, res, next) => {
     }
 
     if (!user.avatar) {
-      return res.json({ message: "No image to delete", user });
+      return res.json({ message: "No image to delete" });
     }
 
     await cloudinary.uploader.destroy(`med_VQA_Data/profile-pictures/${userId}`);
     user.avatar = "";
     await user.save();
 
-    res.json({ message: "User image deleted successfully", user });
+    res.json({ message: "User image deleted successfully"});
   } catch (error) {
     next(error);
   }
 };
-
+const getUser=async (req, res, next) => {
+  try {
+    const { userId } = req.body;
+    const user = await User.findById(userId).select("-password");
+    if (!user) {
+      return next(appError.createError("User not found", 404, "ERROR"));
+    }
+    res.json({ user });
+  }
+  catch (error) {
+    next(error);
+  }
+};
 const contactUs = async (req, res, next) => {
   try {
     const { email, firstName, lastName, message } = req.body;
@@ -155,6 +167,7 @@ const resetPassword = async (req, res,next) => {
 module.exports = {
   updateUser,
   deleteUserImage,
+  getUser,
   contactUs,
   forgetPassword,
   resetPassword,

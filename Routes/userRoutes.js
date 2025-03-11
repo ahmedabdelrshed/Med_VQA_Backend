@@ -4,7 +4,7 @@ const {
   resetPassword,
 } = require("../controllers/userController");
 const { updateUser } = require("../controllers/userController");
-const { contactUs } = require("../controllers/userController");
+const { contactUs,deleteUserImage } = require("../controllers/userController");
 const { upload, checkImageSize } = require("../middlewares/upload");
 const verifyToken = require("../middlewares/verifyToken");
 
@@ -17,6 +17,7 @@ userRouter.patch(
   checkImageSize,
   updateUser
 );
+userRouter.delete("/deleteImage", verifyToken, deleteUserImage);
 
 userRouter.post("/contactUs", contactUs);
 userRouter.post("/forgetPassword", forgetPassword);

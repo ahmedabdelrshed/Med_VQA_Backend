@@ -9,8 +9,8 @@ const transporter = nodemailer.createTransport({
     pass: process.env.EMAIL_PASSWORD,
   },
   pool: true,
-  maxConnections: 1,
-  maxMessages: 5,
+  maxConnections: 20,
+  maxMessages: 120,
 });
 const sendResetPasswordEmail = async (email, token) => {
   const url = `${process.env.FRONTEND_URL}/change_password/${token}`;

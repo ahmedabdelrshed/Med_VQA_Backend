@@ -43,7 +43,7 @@ const sgMail = require("@sendgrid/mail");
 const appError = require("./appError");
 const { ERROR } = require("./httpStatus");
 
-sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+sgMail.setApiKey('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');
 
 const sendResetPasswordEmail = async (email, token) => {
   try {

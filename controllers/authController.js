@@ -8,7 +8,7 @@ const {
   createHashPassword,
   checkStrongPassword,
 } = require("../services/userService");
-const { verificationEmail } = require("../utils/SendVerificationEmail");
+const { sendVerificationEmail } = require("../utils/SendVerificationEmail");
 
 const register = async (req, res, next) => {
   const errors = validationResult(req);
@@ -23,7 +23,7 @@ const register = async (req, res, next) => {
     const newUser = new User({ ...req.body, password: hashPassword });
     const token = createToken(newUser, "15m");
     await newUser.save();
-    await verificationEmail(newUser.email, token);
+    await sendVerificationEmail(newUser.email, token);
     res.status(201).json({
       message: "Verification email sent successfully. Please check your email.",
     });
@@ -33,54 +33,55 @@ const register = async (req, res, next) => {
 };
 
 const login = async (req, res, next) => {
-    try {
-      const { email, password, rememberMe } = req.body; 
-  
-      if (!email || !password) {
-        return res.status(400).json({ error: "Email and password are required" });
-      }
-  
-      const user = await User.findOne({ email }).select("+password");
-      if (!user) {
-        const error = appError.createError("Email or Password are not correct", 404, "ERROR");
-        return next(error);
-      }
-  
-      if (!user.isVerified) {
-        const error = appError.createError(
-          "Email is not verified. Please check your email to verify your account.",
-          403,
-          "ERROR"
-        );
-        return next(error);
-      }
-  
-      const matchedPassword = await bcrypt.compare(password, user.password);
-      if (!matchedPassword) {
-        const error = appError.createError("Incorrect Password", 401, "ERROR");
-        return next(error);
-      }
-  
-      const expireDate = rememberMe ? "7d" : "1d";
-      const token = createToken(user, expireDate);
-  
-      res.json({
-        token: token,
-        user: {
-          id: user._id,
-          email: user.email,
-          firstName: user.firstName,
-          lastName: user.lastName,
-          avatar: user.avatar,
-          
-        },
-      });
-    } catch (error) {
-      next(error);
+  try {
+    const { email, password, rememberMe } = req.body;
+
+    if (!email || !password) {
+      return res.status(400).json({ error: "Email and password are required" });
     }
-  };
-  
-  
+
+    const user = await User.findOne({ email }).select("+password");
+    if (!user) {
+      const error = appError.createError(
+        "Email or Password are not correct",
+        404,
+        "ERROR"
+      );
+      return next(error);
+    }
+
+    if (!user.isVerified) {
+      const error = appError.createError(
+        "Email is not verified. Please check your email to verify your account.",
+        403,
+        "ERROR"
+      );
+      return next(error);
+    }
+
+    const matchedPassword = await bcrypt.compare(password, user.password);
+    if (!matchedPassword) {
+      const error = appError.createError("Incorrect Password", 401, "ERROR");
+      return next(error);
+    }
+
+    const expireDate = rememberMe ? "7d" : "1d";
+    const token = createToken(user, expireDate);
+
+    res.json({
+      token: token,
+      user: {
+        id: user._id,
+        email: user.email,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        avatar: user.avatar,
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
 
 const verifyEmail = async (req, res, next) => {
   const email = req.currentUser.email;
@@ -103,7 +104,11 @@ const verifyEmail = async (req, res, next) => {
       message: "User verified successfully you can login successfully",
     });
   } catch (err) {
-    const error = appError.createError("Error When Verify Your Account Please try again", 400, "ERROR");
+    const error = appError.createError(
+      "Error When Verify Your Account Please try again",
+      400,
+      "ERROR"
+    );
     return next(error);
   }
 };
@@ -124,30 +129,34 @@ const resendVerificationEmail = async (req, res, next) => {
     const token = createToken(user, "15m");
     await verificationEmail(user.email, token);
 
-    res.status(200).json({ message: "Verification email resent successfully." });
+    res
+      .status(200)
+      .json({ message: "Verification email resent successfully." });
   } catch (error) {
     next(error);
   }
 };
 const checkUserEmail = async (req, res, next) => {
-    const { email } = req.body;
-    
-    try {
-      const user = await User.findOne({ email });
-      if (user) {
-        return res.status(200).json({ status: true  , message: "User is already exist" });
-      } else {
-        return res.status(200).json({ status: false , message: "User Not Found" });
-      }
-    } catch (error) {
-      next(error);
+  const { email } = req.body;
+
+  try {
+    const user = await User.findOne({ email });
+    if (user) {
+      return res
+        .status(200)
+        .json({ status: true, message: "User is already exist" });
+    } else {
+      return res.status(200).json({ status: false, message: "User Not Found" });
     }
-  };
+  } catch (error) {
+    next(error);
+  }
+};
 
 module.exports = {
   register,
   login,
   verifyEmail,
   resendVerificationEmail,
-  checkUserEmail
+  checkUserEmail,
 };

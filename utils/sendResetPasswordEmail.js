@@ -43,9 +43,9 @@ const sgMail = require("@sendgrid/mail");
 const appError = require("./appError");
 const { ERROR } = require("./httpStatus");
 
-sgMail.setApiKey('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');
 
 const sendResetPasswordEmail = async (email, token) => {
+  sgMail.setApiKey(process.env.SENDGRID_API_KEY);
   try {
     const url = `${process.env.FRONTEND_URL}/change_password/${token}`;
     const message = {
@@ -68,6 +68,7 @@ const sendResetPasswordEmail = async (email, token) => {
       400,
       ERROR
     );
+    // console.error("SendGrid Error:", error.response?.body || error.message);
   }
 };
 

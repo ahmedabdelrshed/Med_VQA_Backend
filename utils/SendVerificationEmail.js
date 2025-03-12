@@ -8,6 +8,9 @@ const transporter = nodemailer.createTransport({
     user: process.env.EMAIL,
     pass: process.env.EMAIL_PASSWORD,
   },
+  pool: true,  
+  maxConnections: 1, 
+  maxMessages: 5, 
 });
 
 const verificationEmail = async (email, token) => {

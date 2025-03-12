@@ -127,7 +127,7 @@ const resendVerificationEmail = async (req, res, next) => {
     }
 
     const token = createToken(user, "15m");
-    await verificationEmail(user.email, token);
+    await sendVerificationEmail(user.email, token);
 
     res
       .status(200)

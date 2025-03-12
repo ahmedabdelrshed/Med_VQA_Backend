@@ -15,7 +15,11 @@ app.use(express.json());
 const port = process.env.PORT;
 app.use(
   cors({
-    origin: [`${process.env.FRONTEND_URL}`, "https://medicalvqa.vercel.app"],
+    origin: [
+      `${process.env.FRONTEND_URL}`,
+      "https://medicalvqa.vercel.app",
+      "http://localhost:5173",
+    ],
     credentials: true,
   })
 );

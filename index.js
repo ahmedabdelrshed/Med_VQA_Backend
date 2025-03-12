@@ -15,7 +15,7 @@ app.use(express.json());
 const port = process.env.PORT;
 app.use(
   cors({
-    origin: [`${process.env.FRONTEND_URL}`],
+    origin: [`${process.env.FRONTEND_URL}`, "https://medicalvqa.vercel.app"],
     credentials: true,
   })
 );

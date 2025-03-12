@@ -141,8 +141,7 @@ const forgetPassword = async (req, res) => {
     return res.status(404).json({ error: "User not found" });
   }
   const token = createToken(user, "10m");
-  await sendResetPasswordEmail(email, token);
-  res.json({ message: "Reset password link sent successfully" });
+  await sendResetPasswordEmail(email, token,res);
 };
 const resetPassword = async (req, res,next) => {
   try {

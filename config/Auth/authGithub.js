@@ -8,7 +8,7 @@ passport.use(
     {
       clientID: process.env.GITHUB_CLIENT_ID, // Your GitHub Client ID
       clientSecret: process.env.GITHUB_CLIENT_SECRET, // Your GitHub Client Secret
-      callbackURL: "/auth/github/callback",
+      callbackURL: "https://med-vqa-backend.vercel.app/auth/github/callback",
       scope: ["user:email"], // Ensure this scope is included
     },
     async (accessToken, refreshToken, profile, done) => {

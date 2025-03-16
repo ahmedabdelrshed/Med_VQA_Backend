@@ -5,6 +5,8 @@ const {
   getAllChats,
   deleteChat,
   updateChat,
+  shareChat,
+  getSharedChat,
 } = require("../controllers/chatControllers");
 const { getChat } = require("../controllers/chatControllers");
 const chatRouter = express.Router();
@@ -18,5 +20,8 @@ chatRouter
   .get(verifyToken, getChat)
   .delete(verifyToken, deleteChat)
   .patch(verifyToken, updateChat);
+
+chatRouter.post("/share/:chatId",verifyToken, shareChat);
+chatRouter.get("/shared-chat/:sharedId",verifyToken, getSharedChat);
 
 module.exports = chatRouter;

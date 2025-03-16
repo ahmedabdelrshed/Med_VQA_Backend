@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+
 const chatSchema = mongoose.Schema({
   userID: {
     type: mongoose.Schema.Types.ObjectId,
@@ -13,6 +14,16 @@ const chatSchema = mongoose.Schema({
     type: Date,
     default: Date.now,
   },
+  sharedId: {
+    type: String,
+    unique: true,
+    sparse: true,
+  },
+  isShared: {
+    type: Boolean,
+    default: false,
+  },
 });
 
 module.exports = mongoose.model("Chat", chatSchema);
+

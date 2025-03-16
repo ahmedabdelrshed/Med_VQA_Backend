@@ -3,6 +3,7 @@ const Chat = require("../models/chatModel");
 const appError = require("../utils/appError");
 const { ERROR, FAIL ,SUCCESS} = require("../utils/httpStatus");
 const Question = require("../models/questionsModel");
+const { v4: uuidv4 } = require("uuid");
 
 const createChat = async (req, res, next) => {
   const { userId } = req.currentUser;
@@ -126,4 +127,60 @@ const updateChat = async(req,res,next) => {
   }
 };
 
-module.exports = { createChat, getChat, getAllChats ,deleteChat,updateChat};
+const shareChat = async (req, res, next) => {
+  const { chatId } = req.params;
+
+  try {
+    const chat = await Chat.findById(chatId);
+    if (!chat) {
+      return next(appError.createError("Chat not found", 404, "NOT_FOUND"));
+    }
+
+    if (!chat.sharedId) {
+      chat.sharedId = uuidv4();
+      chat.isShared = true;
+      await chat.save();
+    }
+
+    const sharedLink = `${process.env.BACKEND_URL}/shared-chat/${chat.sharedId}`;
+    res.status(200).json({
+      success: true,
+      sharedLink,
+    });
+  } catch (error) {
+    next(appError.createError("Error sharing chat", 500, ERROR, error));
+  }
+};
+
+const getSharedChat = async (req, res, next) => {
+  const { sharedId } = req.params;
+
+  try {
+    const chat = await Chat.findOne({ sharedId });
+    if (!chat) {
+      return next(appError.createError("Shared chat not found", 404, "NOT_FOUND"));
+    }
+
+    const questions = await Question.find({ chatId: chat._id });
+
+    res.status(200).json({
+      success: true,
+      chat: {
+        title: chat.title,
+        questions,
+      },
+    });
+  } catch (error) {
+    next(appError.createError("Error fetching shared chat", 500, ERROR, error));
+  }
+};
+
+module.exports = { 
+  createChat,
+   getChat, 
+   getAllChats,
+   deleteChat,
+   updateChat,
+   shareChat,
+   getSharedChat,
+  };

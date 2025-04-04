@@ -11,7 +11,7 @@ const {
   createHashPassword,
 } = require("../services/userService");
 const createToken = require("../utils/createToken");
-const { contactEmail } = require("../utils/SendVerificationEmail");
+const {sendContactEmail} = require("../utils/SendVerificationEmail");
 
 const updateUser = async (req, res, next) => {
   try {
@@ -121,7 +121,7 @@ const contactUs = async (req, res, next) => {
       return next(appError.createError("All fields are required", 400, "ERROR"));
     }
 
-    const result = await contactEmail(email, firstName, lastName, message);
+    const result = await sendContactEmail(email, firstName, lastName, message);
 
     if (!result.success) {
       return next(appError.createError(result.message, 500, "ERROR"));

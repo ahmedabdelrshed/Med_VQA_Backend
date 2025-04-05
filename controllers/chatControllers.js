@@ -1,16 +1,16 @@
-const User = require("../models/userModel");
 const Chat = require("../models/chatModel");
 const appError = require("../utils/appError");
-const { ERROR, FAIL ,SUCCESS} = require("../utils/httpStatus");
+const { ERROR, FAIL, SUCCESS } = require("../utils/httpStatus");
 const Question = require("../models/questionsModel");
 const { v4: uuidv4 } = require("uuid");
+const { checkChatExist } = require("../services/chatService");
 
 const createChat = async (req, res, next) => {
   const { userId } = req.currentUser;
   try {
-    const countsChatsExists = await Chat.countDocuments({ userID: userId }) 
-    const defaultTitle= `New chat ${countsChatsExists + 1}`
-    const newChat = new Chat({ userID: userId, title : defaultTitle});
+    const countsChatsExists = await Chat.countDocuments({ userID: userId });
+    const defaultTitle = `New chat ${countsChatsExists + 1}`;
+    const newChat = new Chat({ userID: userId, title: defaultTitle });
     await newChat.save();
     return res.status(201).json({
       status: "success",
@@ -30,12 +30,7 @@ const getChat = async (req, res, next) => {
         appError.createError("Chat ID is required", 400, "VALIDATION_ERROR")
       );
     }
-
-    const chatExists = await Chat.exists({ _id: chatId });
-    if (!chatExists) {
-      return next(appError.createError("Chat not found", 404, "NOT_FOUND"));
-    }
-
+    await checkChatExist(chatId, req.currentUser.userId, next);
     const questions = await Question.find({ chatId });
 
     if (questions.length === 0) {
@@ -47,7 +42,6 @@ const getChat = async (req, res, next) => {
         )
       );
     }
-
     res.status(200).json({
       success: true,
       data: questions,
@@ -65,7 +59,7 @@ const getChat = async (req, res, next) => {
 };
 
 const getAllChats = async (req, res, next) => {
-  const {userId} = req.currentUser;
+  const { userId } = req.currentUser;
   try {
     const chats = await Chat.find({ userID: userId }).sort({ createdAt: -1 });
     res.status(200).json({
@@ -85,10 +79,8 @@ const deleteChat = async (req, res, next) => {
     return next(appError.createError("Chat ID is required", 400, ERROR));
   }
 
-  const chatExists = await Chat.exists({ _id: chatId });
-  if (!chatExists) {
-    return next(appError.createError("Chat not found", 404, FAIL));
-  }
+  await checkChatExist(chatId, req.currentUser.userId, next);
+
   try {
     await Question.deleteMany({ chatId });
     await Chat.findByIdAndDelete(chatId);
@@ -101,15 +93,12 @@ const deleteChat = async (req, res, next) => {
     );
   }
 };
-const updateChat = async(req,res,next) => {
+const updateChat = async (req, res, next) => {
   const { chatId } = req.params;
   if (!chatId) {
     return next(appError.createError("Chat ID is required", 400, ERROR));
   }
-  const chatExists = await Chat.exists({ _id: chatId });
-  if (!chatExists) {
-    return next(appError.createError("Chat not found", 404, FAIL));
-  }
+  await checkChatExist(chatId, req.currentUser.userId, next);
   const { title } = req.body;
   if (!title) {
     return next(appError.createError("Title is required", 400, ERROR));
@@ -117,10 +106,11 @@ const updateChat = async(req,res,next) => {
   try {
     const updatedChat = await Chat.findByIdAndUpdate(
       chatId,
-       { title },
-       { new: true });
-    res.status(200).json({status:SUCCESS, updatedChat});
-} catch (error) {
+      { title },
+      { new: true }
+    );
+    res.status(200).json({ status: SUCCESS, updatedChat });
+  } catch (error) {
     next(
       appError.createError("An error occurred while updating chat", 500, ERROR)
     );
@@ -158,7 +148,9 @@ const getSharedChat = async (req, res, next) => {
   try {
     const chat = await Chat.findOne({ sharedId });
     if (!chat) {
-      return next(appError.createError("Shared chat not found", 404, "NOT_FOUND"));
+      return next(
+        appError.createError("Shared chat not found", 404, "NOT_FOUND")
+      );
     }
 
     const questions = await Question.find({ chatId: chat._id });
@@ -175,12 +167,12 @@ const getSharedChat = async (req, res, next) => {
   }
 };
 
-module.exports = { 
+module.exports = {
   createChat,
-   getChat, 
-   getAllChats,
-   deleteChat,
-   updateChat,
-   shareChat,
-   getSharedChat,
-  };
+  getChat,
+  getAllChats,
+  deleteChat,
+  updateChat,
+  shareChat,
+  getSharedChat,
+};

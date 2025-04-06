@@ -99,11 +99,25 @@ const updateChat = async (req, res, next) => {
     return next(appError.createError("Chat ID is required", 400, ERROR));
   }
   await checkChatExist(chatId, req.currentUser.userId, next);
+
   const { title } = req.body;
   if (!title) {
     return next(appError.createError("Title is required", 400, ERROR));
   }
+
   try {
+    const existingChat = await Chat.findOne({
+      userID: req.currentUser.userId,
+      title,
+      _id: { $ne: chatId },
+    });
+
+    if (existingChat) {
+      return next(
+        appError.createError("Chat title already exists", 400, ERROR)
+      );
+    }
+
     const updatedChat = await Chat.findByIdAndUpdate(
       chatId,
       { title },

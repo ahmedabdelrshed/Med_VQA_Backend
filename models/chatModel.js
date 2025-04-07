@@ -10,6 +10,10 @@ const chatSchema = mongoose.Schema({
     required: true,
     trim: true,
   },
+  chatIndex:{
+    type: Number,
+    unique: true,
+  },
   createdAt: {
     type: Date,
     default: Date.now,

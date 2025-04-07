@@ -8,10 +8,15 @@ const { checkChatExist } = require("../services/chatService");
 const createChat = async (req, res, next) => {
   const { userId } = req.currentUser;
   try {
-    const countsChatsExists = await Chat.countDocuments({ userID: userId });
-    const defaultTitle = `New chat ${countsChatsExists + 1}`;
-    const newChat = new Chat({ userID: userId, title: defaultTitle });
+    const lastChat = await Chat.findOne({ userID: userId }).sort({ chatIndex: -1 }).select("chatIndex");
+
+    const newIndex = lastChat ? lastChat.chatIndex + 1 : 1;
+
+    const newTitle = `New chat ${newIndex}`;
+
+    const newChat = new Chat({ userID: userId, title: newTitle, chatIndex: newIndex });
     await newChat.save();
+
     return res.status(201).json({
       status: "success",
       data: newChat,
@@ -20,6 +25,7 @@ const createChat = async (req, res, next) => {
     return next(appError.createError("Error when create Chat ", 400, error));
   }
 };
+
 
 const getChat = async (req, res, next) => {
   try {

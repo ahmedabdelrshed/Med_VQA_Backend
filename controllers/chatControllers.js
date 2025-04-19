@@ -8,13 +8,19 @@ const { checkChatExist } = require("../services/chatService");
 const createChat = async (req, res, next) => {
   const { userId } = req.currentUser;
   try {
-    const lastChat = await Chat.findOne({ userID: userId }).sort({ chatIndex: -1 }).select("chatIndex");
+    const lastChat = await Chat.findOne({ userID: userId })
+      .sort({ chatIndex: -1 })
+      .select("chatIndex");
 
     const newIndex = lastChat ? lastChat.chatIndex + 1 : 1;
 
     const newTitle = `New chat ${newIndex}`;
 
-    const newChat = new Chat({ userID: userId, title: newTitle, chatIndex: newIndex });
+    const newChat = new Chat({
+      userID: userId,
+      title: newTitle,
+      chatIndex: newIndex,
+    });
     await newChat.save();
 
     return res.status(201).json({
@@ -25,7 +31,6 @@ const createChat = async (req, res, next) => {
     return next(appError.createError("Error when create Chat ", 400, error));
   }
 };
-
 
 const getChat = async (req, res, next) => {
   try {
@@ -40,13 +45,10 @@ const getChat = async (req, res, next) => {
     const questions = await Question.find({ chatId });
 
     if (questions.length === 0) {
-      return next(
-        appError.createError(
-          "No questions found for this chat ID",
-          404,
-          "NOT_FOUND"
-        )
-      );
+      return res.status(200).json({
+        success: true,
+        data: [],
+      });
     }
     res.status(200).json({
       success: true,

@@ -35,8 +35,9 @@ const sendVerificationEmail = async (email, token) => {
 const sendContactEmail = async (email, firstName, lastName, messageContent) => {
   try {
     const message = {
-      from: email,
-      to: process.env.EMAIL,
+      from: process.env.EMAIL, 
+      replyTo: email, 
+      to: process.env.EMAIL,   
       subject: "New Contact Us Message",
       text: `From: ${firstName} ${lastName}\nEmail: ${email}\n\nMessage:\n${messageContent}`,
     };

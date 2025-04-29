@@ -1,14 +1,13 @@
 const Question = require("../models/questionsModel");
 const appError = require("../utils/appError");
 const Chat = require("../models/chatModel");
-const FormData = require("form-data");
 
 
 const addQuestion = async (req, res, next) => {
-  const fetch = (await import('node-fetch')).default;
+
   try {
     const { chatId } = req.params;
-    const { question } = req.body;
+    const { question ,response} = req.body;
 
     if (!question || question.length < 5) {
       return next(
@@ -37,32 +36,11 @@ const addQuestion = async (req, res, next) => {
     }
 
     const imageUrl = req.file.path;
-    const imageResponse = await fetch(imageUrl);
-    if (!imageResponse.ok) {
-      throw new Error(
-        `Failed to fetch image from Cloudinary: ${imageResponse.statusText}`
-      );
-    }
-    const imageBuffer = await imageResponse.buffer();
-
-    // Step 3: Create a FormData instance and append the image buffer
-    const formData = new FormData();
-    formData.append('file', imageBuffer, {
-      filename: 'image-from-cloudinary.jpg', // Provide a filename for the image
-      contentType: imageResponse.headers.get('content-type'), // Use the Content-Type from Cloudinary
-    });
-    const apiEndpoint = 'https://a7med95-model-medical-v1.hf.space/predict';
-    const response = await fetch(apiEndpoint, {
-      method: 'POST',
-      body: formData,
-      headers: formData.getHeaders(),
-    });
-  const data = await response.json();
     const newQuestion = new Question({
       chatId,
       question,
       imageUrl,
-      answer: data.label,
+      answer: response,
     });
     await newQuestion.save();
 

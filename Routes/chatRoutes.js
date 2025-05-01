@@ -22,6 +22,6 @@ chatRouter
   .patch(verifyToken, updateChat);
 
 chatRouter.post("/share/:chatId",verifyToken, shareChat);
-chatRouter.get("/shared-chat/:sharedId",verifyToken, getSharedChat);
+chatRouter.get("/shared-chat/:sharedId", getSharedChat);
 
 module.exports = chatRouter;

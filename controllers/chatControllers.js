@@ -154,7 +154,7 @@ const shareChat = async (req, res, next) => {
       await chat.save();
     }
 
-    const sharedLink = `${process.env.BACKEND_URL}/shared-chat/${chat.sharedId}`;
+    const sharedLink = `${process.env.FRONTEND_URL}/share/${chat.sharedId}`;
     res.status(200).json({
       success: true,
       sharedLink,

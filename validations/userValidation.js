@@ -1,4 +1,5 @@
 const { body } = require("express-validator");
+const { GENDER } = require("../utils/patientConstants");
 
 const userSchema = () => {
   return [
@@ -24,8 +25,19 @@ const userSchema = () => {
       .notEmpty()
       .withMessage("password is required")
       .isLength({ min: 8 }),
+
+    body("gender")
+      .notEmpty()
+      .withMessage("gender is required")
+      .isIn(GENDER)
+      .withMessage(`gender must be one of: ${GENDER.join(", ")}`),
+
+    body("DateOfBirth")
+      .notEmpty()
+      .withMessage("DateOfBirth is required")
+      .isISO8601()
+      .withMessage("DateOfBirth must be a valid date in yyyy-mm-dd format"),
   ];
 };
-
 
 module.exports = userSchema;

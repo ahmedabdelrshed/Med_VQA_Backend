@@ -1,6 +1,7 @@
 const mongoose = require("mongoose");
 const { isEmail } = require("validator");
 const roles = require("../utils/userRoles");
+const {GENDER}= require("../utils/patientConstants");
 const userSchema = new mongoose.Schema({
   firstName: {
     type: String,
@@ -28,6 +29,17 @@ const userSchema = new mongoose.Schema({
     type:String,
     default:''
   },
+  DateOfBirth:{
+    type: Date,
+    required: true,
+  },
+  gender:{
+    type: String,
+    enum: GENDER,
+    required: true,
+  },
+ 
+
   isVerified: { type: Boolean, default: false },
 });
 

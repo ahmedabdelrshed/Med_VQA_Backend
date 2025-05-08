@@ -15,15 +15,26 @@ const register = async (req, res, next) => {
   if (!errors.isEmpty()) {
     return res.status(400).json({ errors: errors.array() });
   }
+
   const { email, password } = req.body;
+
   checkUserExist(email, next);
   checkStrongPassword(password, next);
+
   try {
     const hashPassword = await createHashPassword(password);
-    const newUser = new User({ ...req.body, password: hashPassword });
+
+    const newUser = new User({
+      ...req.body,
+      password: hashPassword,
+    });
+
+    await newUser.save(); 
+
     const token = createToken(newUser, "15m");
-    await newUser.save();
+
     await sendVerificationEmail(newUser.email, token);
+
     res.status(201).json({
       message: "Verification email sent successfully. Please check your email.",
     });
@@ -31,6 +42,7 @@ const register = async (req, res, next) => {
     next(error);
   }
 };
+
 
 const login = async (req, res, next) => {
   try {

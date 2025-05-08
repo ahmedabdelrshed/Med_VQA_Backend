@@ -6,14 +6,7 @@ const patientSugarSchema = new mongoose.Schema({
     ref: "User",
   },
   predictions: [{
-    age: {
-      type: Number,
-      required: true,
-    },
-    gender: {
-      type: String,
-      required: true,
-    },
+    
     diabetes_status: {
       type: String,
       required: true, 

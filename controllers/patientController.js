@@ -1,18 +1,34 @@
 const SugarPatient = require("../models/sugarModel");
+const User = require("../models/userModel");
+const calculateAge = require("../utils/calculateAge");
 const predictPatientSugarStatus = require("../APIModelCaller/sugarApiCaller");
 const validatePatientSugarInput = require("../validations/validatePatientData");
 
 const predictSugarPatient = async (req, res) => {
+  const { userId } = req.currentUser;
   const patientData = req.body;
-  const { userId } = req.currentUser; 
 
-  const validationErrors = validatePatientSugarInput(patientData);
+  const user = await User.findById(userId);
+  if (!user) {
+    return res.status(404).json({ message: "User not found" });
+  }
+
+  const gender = user.gender;
+  const age = calculateAge(user.DateOfBirth);
+
+  const finalData = {
+    ...patientData,
+    gender,
+    age,
+  };
+
+  const validationErrors = validatePatientSugarInput(finalData);
   if (validationErrors.length > 0) {
     return res.status(400).json({ errors: validationErrors });
   }
 
   try {
-    const prediction = await predictPatientSugarStatus(patientData);
+    const prediction = await predictPatientSugarStatus(finalData);
 
     let patient = await SugarPatient.findOne({ userID: userId });
 
@@ -23,8 +39,10 @@ const predictSugarPatient = async (req, res) => {
       });
     }
 
+    const { gender, age, ...predictionDataToSave } = finalData;
+
     patient.predictions.push({
-      ...patientData,
+      ...predictionDataToSave,
       prediction_result: prediction.predicted_general_health_sugar || "Unknown result",
       createdAt: new Date(),
     });
@@ -43,6 +61,5 @@ const predictSugarPatient = async (req, res) => {
     res.status(500).json({ message: "Error predicting or saving data." });
   }
 };
-
 
 module.exports = { predictSugarPatient };

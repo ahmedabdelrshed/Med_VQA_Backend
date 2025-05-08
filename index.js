@@ -6,6 +6,8 @@ const passport = require("passport");
 const authRouter = require("./Routes/authRoutes");
 const chatRouter = require("./Routes/chatRoutes");
 const questionRouter = require("./Routes/questionsRoutes");
+const patientRouter = require("./Routes/patientRoutes");
+
 const cors = require("cors");
 require("dotenv").config();
 const app = express();
@@ -31,6 +33,10 @@ app.use(passport.initialize());
 app.use("/auth", authRouter);
 app.use("/chat", chatRouter);
 app.use("/question", questionRouter);
+
+
+app.use("/api/patient", patientRouter);
+
 app.use((error, req, res, next) => {
   res
     .status(error.statusCode || 500)

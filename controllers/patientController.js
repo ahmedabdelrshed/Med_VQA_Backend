@@ -62,4 +62,62 @@ const predictSugarPatient = async (req, res) => {
   }
 };
 
-module.exports = { predictSugarPatient };
+
+
+const getPatientPredictions = async (req, res) => {
+  const { userId } = req.currentUser;
+  const { startDate, endDate } = req.query;
+
+  try {
+    const patientRecord = await SugarPatient.findOne({ userID: userId });
+
+    if (!patientRecord) {
+      return res.status(404).json({ message: "Patient not found" });
+    }
+
+    if ((startDate && !endDate) || (!startDate && endDate)) {
+      return res.status(400).json({ message: "Please provide both startDate and endDate." });
+    }
+
+    let filteredPredictions = patientRecord.predictions;
+
+    let start, end;
+    if (startDate && endDate) {
+      start = startDate;
+      end = endDate;
+    } else {
+      const today = new Date();
+      const lastWeek = new Date(today);
+      lastWeek.setDate(today.getDate() - 7);
+
+      start = lastWeek.toISOString().split("T")[0];
+      end = today.toISOString().split("T")[0];
+    }
+
+    const formatDate = (date) => new Date(date).toISOString().split("T")[0];
+
+    filteredPredictions = filteredPredictions.filter((prediction) => {
+      const predictionDate = formatDate(prediction.createdAt);
+      return predictionDate >= start && predictionDate <= end;
+    });
+
+    const resultData = filteredPredictions.map(pred => ({
+      createdAt: pred.createdAt,
+      result: pred.prediction_result,
+    }));
+
+    res.status(200).json({
+      message: "Predictions fetched successfully.",
+      data: resultData,
+    });
+  } catch (err) {
+    console.error("Error:", err.message);
+    res.status(500).json({ message: "Error fetching predictions." });
+  }
+};
+
+
+
+
+
+module.exports = { predictSugarPatient, getPatientPredictions };

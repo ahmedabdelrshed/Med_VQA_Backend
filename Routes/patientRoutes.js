@@ -1,8 +1,11 @@
 const express = require("express");
-const router = express.Router();
-const { predictSugarPatient } = require("../controllers/patientController");
+const { predictSugarPatient, getPatientPredictions } = require("../controllers/patientController");
 const verifyToken = require('../middlewares/verifyToken');
 
-router.post("/analyzeSugar",verifyToken,predictSugarPatient);
 
-module.exports = router;
+const patientRouter = express.Router();
+
+patientRouter.post("/analyzeSugar",verifyToken,predictSugarPatient)
+            .get("/getPredictions", verifyToken, getPatientPredictions);
+
+module.exports = patientRouter;

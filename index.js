@@ -35,7 +35,7 @@ app.use("/chat", chatRouter);
 app.use("/question", questionRouter);
 
 
-app.use("/api/patient", patientRouter);
+app.use("/api/sugarPatient", patientRouter);
 
 app.use((error, req, res, next) => {
   res

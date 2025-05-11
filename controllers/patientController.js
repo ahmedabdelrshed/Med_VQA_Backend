@@ -3,6 +3,7 @@ const User = require("../models/userModel");
 const calculateAge = require("../utils/calculateAge");
 const predictPatientSugarStatus = require("../APIModelCaller/sugarApiCaller");
 const validatePatientSugarInput = require("../validations/validatePatientData");
+const moment = require("moment-timezone");
 
 const predictSugarPatient = async (req, res) => {
   const { userId } = req.currentUser;
@@ -44,16 +45,24 @@ const predictSugarPatient = async (req, res) => {
     patient.predictions.push({
       ...predictionDataToSave,
       prediction_result: prediction.predicted_general_health_sugar || "Unknown result",
-      createdAt: new Date(),
+      createdAt: moment().tz("Africa/Cairo").toDate(),
     });
 
     await patient.save();
+
+        const formattedPredictions = patient.predictions.map((p) => ({
+      ...p._doc,
+      createdAt: moment(p.createdAt)
+        .tz("Africa/Cairo")
+        .format("YYYY-MM-DD HH:mm:ss"),
+    }));
+
 
     res.status(200).json({
       message: "Prediction completed and patient saved.",
       data: {
         userID: patient.userID,
-        predictions: patient.predictions,
+        predictions: formattedPredictions,
       },
     });
   } catch (err) {
@@ -61,8 +70,6 @@ const predictSugarPatient = async (req, res) => {
     res.status(500).json({ message: "Error predicting or saving data." });
   }
 };
-
-
 
 const getPatientPredictions = async (req, res) => {
   const { userId } = req.currentUser;
@@ -101,10 +108,13 @@ const getPatientPredictions = async (req, res) => {
       return predictionDate >= start && predictionDate <= end;
     });
 
-    const resultData = filteredPredictions.map(pred => ({
-      createdAt: pred.createdAt,
-      result: pred.prediction_result,
-    }));
+  const resultData = filteredPredictions.map(pred => ({
+  createdAt: moment(pred.createdAt)
+    .tz("Africa/Cairo")
+    .format("YYYY-MM-DD HH:mm:ss"),
+  result: pred.prediction_result,
+}));
+
 
     res.status(200).json({
       message: "Predictions fetched successfully.",

@@ -15,6 +15,15 @@ module.exports = {
   STRESS_LEVEL: ["High", "Medium", "Low"],
   SYMPTOMS_NOW: ["Dizziness", "No", "Multiple", "Blurred Vision", "Headache"],
   HISTORY_OF_HIGH_BP: ["Yes", "No"],
+
+  // Constants for Obesity
+  FAMILY_HISTORY: ["yes", "no"],
+  FAVC: ["yes", "no"],
+  CAEC:["Sometimes" ,"Frequently", "Always" ,"no"],
+  SMOKE: ["yes", "no"],
+  SCC: ["yes", "no"],
+  CALC:  ["no" ,"Sometimes" ,"Frequently", "Always"],
+  MTRANS: ["Public_Transportation" ,"Walking", "Automobile", "Motorbike", "Bike"] ,
 };
 
   

@@ -8,6 +8,7 @@ const chatRouter = require("./Routes/chatRoutes");
 const questionRouter = require("./Routes/questionsRoutes");
 const patientRouter = require("./Routes/patientRoutes");
 const bpRouter= require("./Routes/bloodPressureRotes");
+const obesityRoutes = require("./Routes/obesityRoutes");
 
 const cors = require("cors");
 require("dotenv").config();
@@ -38,6 +39,9 @@ app.use("/question", questionRouter);
 
 app.use("/api/sugarPatient", patientRouter);
 app.use("/api/bloodPressurePatient", bpRouter);
+
+
+app.use('/api/obesity', obesityRoutes);
 
 app.use((error, req, res, next) => {
   res

@@ -5,13 +5,18 @@ const obesitySchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
   },
-  predictions: [
-    {
-      predictionResult: { type: String, required: true },
-      reportPdfUrl: { type: String, required: true },
-      date: { type: Date, default: Date.now }
-    }
-  ]
+  predictionResult: {
+    type: String, 
+    required: true,
+  },
+  reportPdfUrl: {
+    type: String,
+    required: true,
+  },
+  date: {
+    type: Date,
+    default: Date.now,
+  }
 });
 
 const Obesity = mongoose.model('Obesity', obesitySchema);

@@ -13,9 +13,9 @@ const processObesityPrediction = async (req, res) => {
 
     const user = await User.findById(userId);
     if (!user) {
-      return res.status(404).json({
+      return res.status(404).json({ 
         success: false,
-        message: "User not found"
+        message: "User not found" 
       });
     }
 
@@ -38,8 +38,8 @@ const processObesityPrediction = async (req, res) => {
         {
           resource_type: 'raw',
           format: 'pdf',
-          folder: `med_VQA_Data/obesity_reports/${userId}`, 
-          public_id: `${Date.now()}`,
+          folder: "med_VQA_Data/obesity_reports",
+          public_id: `${userId}_${Date.now()}`,
         },
         (error, result) => {
           if (error) reject(error);
@@ -48,21 +48,21 @@ const processObesityPrediction = async (req, res) => {
       ).end(pdfBuffer);
     });
 
+  
     let obesityRecord = await Obesity.findOne({ userID: userId });
 
-    const newPrediction = {
-      predictionResult: prediction,
-      reportPdfUrl: pdfUpload.secure_url,
-      date: new Date()
-    };
-
     if (obesityRecord) {
-      obesityRecord.predictions.push(newPrediction);
+      // If exists → update 
+      obesityRecord.predictionResult = prediction;
+      obesityRecord.reportPdfUrl = pdfUpload.secure_url;
+      obesityRecord.date = new Date(); 
       await obesityRecord.save();
     } else {
+      // If not exists → create new record
       obesityRecord = new Obesity({
         userID: userId,
-        predictions: [newPrediction]
+        predictionResult: prediction,
+        reportPdfUrl: pdfUpload.secure_url
       });
       await obesityRecord.save();
     }
@@ -73,7 +73,7 @@ const processObesityPrediction = async (req, res) => {
       data: {
         prediction,
         pdfUrl: pdfUpload.secure_url,
-        date: moment(newPrediction.date).tz("Africa/Cairo").format("YYYY-MM-DD HH:mm:ss")
+        date: moment(obesityRecord.date).tz("Africa/Cairo").format("YYYY-MM-DD HH:mm:ss")
       }
     });
 
@@ -87,28 +87,32 @@ const processObesityPrediction = async (req, res) => {
   }
 };
 
+
+
+
 const getUserObesityReports = async (req, res) => {
   try {
     const { userId } = req.currentUser;
 
     const obesityRecord = await Obesity.findOne({ userID: userId });
 
-    const predictions = obesityRecord ? obesityRecord.predictions.map(pred => ({
-      predictionResult: pred.predictionResult,
-      reportPdfUrl: pred.reportPdfUrl,
-      date: moment(pred.date).tz("Africa/Cairo").format("YYYY-MM-DD HH:mm:ss")
-    })) : [];
-
+    const result = obesityRecord
+      ? {
+          predictionResult: obesityRecord.predictionResult,
+          reportPdfUrl: obesityRecord.reportPdfUrl,
+          date: moment(obesityRecord.date).tz("Africa/Cairo").format("YYYY-MM-DD HH:mm:ss")
+        }
+      : {}; 
     res.status(200).json({
       success: true,
-      data: predictions
+      data: result
     });
 
   } catch (error) {
-    console.error('Error fetching obesity reports:', error);
+    console.error('Error fetching obesity report:', error);
     res.status(500).json({
       success: false,
-      message: "Failed to fetch obesity reports",
+      message: "Failed to fetch obesity report",
       error: error.message
     });
   }

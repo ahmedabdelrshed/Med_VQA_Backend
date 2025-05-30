@@ -9,6 +9,8 @@ const questionRouter = require("./Routes/questionsRoutes");
 const patientRouter = require("./Routes/patientRoutes");
 const bpRouter= require("./Routes/bloodPressureRotes");
 const obesityRoutes = require("./Routes/obesityRoutes");
+const healthRecordRouter = require("./Routes/healthRoutes");
+
 
 const cors = require("cors");
 require("dotenv").config();
@@ -43,6 +45,7 @@ app.use("/api/bloodPressurePatient", bpRouter);
 
 app.use('/api/obesity', obesityRoutes);
 
+app.use("/api/health", healthRecordRouter);
 app.use((error, req, res, next) => {
   res
     .status(error.statusCode || 500)

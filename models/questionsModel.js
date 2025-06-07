@@ -1,13 +1,11 @@
 const mongoose = require("mongoose");
 
 const questionSchema = new mongoose.Schema({
-  question: {
+  symptoms: {
     type: String,
-    required: true,
   },
   imageUrl: {
     type: String,
-    required: true,
   },
   chatId: {
     type: mongoose.Schema.Types.ObjectId,
@@ -16,7 +14,12 @@ const questionSchema = new mongoose.Schema({
   },
   answer: {
     type: String,
-    default: null, 
+    default: null,
+  },
+  type: {
+    type: String,
+    enum: ["Symptoms", "Image"],
+    default: "Image",
   },
   createdAt: {
     type: Date,

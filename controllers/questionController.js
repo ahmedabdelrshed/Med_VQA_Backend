@@ -2,23 +2,10 @@ const Question = require("../models/questionsModel");
 const appError = require("../utils/appError");
 const Chat = require("../models/chatModel");
 
-
-const addQuestion = async (req, res, next) => {
-
+const addQuestionWithImage = async (req, res, next) => {
   try {
     const { chatId } = req.params;
-    const { question ,response} = req.body;
-
-    if (!question || question.length < 5) {
-      return next(
-        appError.createError(
-          "Question is required and must be at least 5 characters long",
-          400,
-          "VALIDATION_ERROR"
-        )
-      );
-    }
-
+    const { response } = req.body;
     if (!chatId) {
       return next(
         appError.createError("Chat ID is required", 400, "VALIDATION_ERROR")
@@ -34,11 +21,15 @@ const addQuestion = async (req, res, next) => {
         appError.createError("Image is required", 400, "VALIDATION_ERROR")
       );
     }
+    if (!response) {
+      return next(
+        appError.createError("Response is required", 400, "VALIDATION_ERROR")
+      );
+    }
 
     const imageUrl = req.file.path;
     const newQuestion = new Question({
       chatId,
-      question,
       imageUrl,
       answer: response,
     });
@@ -139,7 +130,7 @@ const deleteQuestion = async (req, res, next) => {
 };
 
 module.exports = {
-  addQuestion,
+  addQuestionWithImage,
   updateQuestion,
   deleteQuestion,
 };

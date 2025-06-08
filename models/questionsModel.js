@@ -16,6 +16,10 @@ const questionSchema = new mongoose.Schema({
     type: String,
     default: null,
   },
+  responseVoiceUrl: {
+    type: String,
+    default: null,
+  },
   type: {
     type: String,
     enum: ["Symptoms", "Image"],

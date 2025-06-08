@@ -2,7 +2,7 @@ const Question = require("../models/questionsModel");
 const appError = require("../utils/appError");
 const Chat = require("../models/chatModel");
 const getSymptomsDiseasePrediction = require("../APIModelCaller/symptomsApi");
-
+const uploadVoiceToCloudinary = require("../utils/uploadQuestionResponseVoise");
 const addQuestionWithImage = async (req, res, next) => {
   try {
     const { chatId } = req.params;
@@ -29,10 +29,12 @@ const addQuestionWithImage = async (req, res, next) => {
     }
 
     const imageUrl = req.file.path;
+    const voiceUrl = await uploadVoiceToCloudinary(response)
     const newQuestion = new Question({
       chatId,
       imageUrl,
       answer: response,
+      responseVoiceUrl: voiceUrl,
     });
     await newQuestion.save();
 
@@ -73,16 +75,17 @@ const addQuestionWithSymptoms = async (req, res, next) => {
       );
     }
     const response = await getSymptomsDiseasePrediction(symptoms);
+    const voiceUrl = await uploadVoiceToCloudinary(response)
     const newQuestion = new Question({
       chatId,
       symptoms: `You have selected the following symptoms: ${symptoms.join(
         ", "
       )}`,
       answer: response,
+      responseVoiceUrl: voiceUrl,
       type: "Symptoms",
     });
     await newQuestion.save();
-
     res.status(201).json({
       success: true,
       message: "Question added successfully",

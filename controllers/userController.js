@@ -1,6 +1,6 @@
 const User = require("../models/userModel");
-const { ERROR } = require("../utils/httpStatus");
 const appError = require("../utils/appError");
+const HealthRecord = require("../models/healthModel");
 const streamifier = require("streamifier");
 const cloudinary = require("../config/cloudinaryConfig");
 const sendResetPasswordEmail = require("../utils/sendResetPasswordEmail");
@@ -11,7 +11,7 @@ const {
   createHashPassword,
 } = require("../services/userService");
 const createToken = require("../utils/createToken");
-const {sendContactEmail} = require("../utils/SendVerificationEmail");
+const { sendContactEmail } = require("../utils/SendVerificationEmail");
 
 const updateUser = async (req, res, next) => {
   try {
@@ -40,11 +40,23 @@ const updateUser = async (req, res, next) => {
 
           req.body.avatar = result.secure_url;
 
-          const updatedUser = await User.findByIdAndUpdate(userId, req.body, {
+          let updatedUser = await User.findByIdAndUpdate(userId, req.body, {
             new: true,
             runValidators: true,
           });
-
+          let isHasHealthRecord = false;
+          const healthRecord = await HealthRecord.findOne({ userId: user._id });
+          if (healthRecord) {
+            isHasHealthRecord = true;
+          }
+          updatedUser = {
+            id: updatedUser._id,
+            email: updatedUser.email,
+            firstName: updatedUser.firstName,
+            lastName: updatedUser.lastName,
+            avatar: updatedUser.avatar,
+            isHasHealthRecord,
+          };
           if (!updatedUser) {
             return next(
               appError.createError("User update failed", 500, "ERROR")
@@ -91,16 +103,18 @@ const deleteUserImage = async (req, res, next) => {
       return res.json({ message: "No image to delete" });
     }
 
-    await cloudinary.uploader.destroy(`med_VQA_Data/profile-pictures/${userId}`);
+    await cloudinary.uploader.destroy(
+      `med_VQA_Data/profile-pictures/${userId}`
+    );
     user.avatar = "";
     await user.save();
 
-    res.json({ message: "User image deleted successfully"});
+    res.json({ message: "User image deleted successfully" });
   } catch (error) {
     next(error);
   }
 };
-const getUser=async (req, res, next) => {
+const getUser = async (req, res, next) => {
   try {
     const { userId } = req.body;
     const user = await User.findById(userId).select("-password");
@@ -108,8 +122,7 @@ const getUser=async (req, res, next) => {
       return next(appError.createError("User not found", 404, "ERROR"));
     }
     res.json({ user });
-  }
-  catch (error) {
+  } catch (error) {
     next(error);
   }
 };
@@ -118,7 +131,9 @@ const contactUs = async (req, res, next) => {
     const { email, firstName, lastName, message } = req.body;
 
     if (!email || !firstName || !lastName || !message) {
-      return next(appError.createError("All fields are required", 400, "ERROR"));
+      return next(
+        appError.createError("All fields are required", 400, "ERROR")
+      );
     }
 
     const result = await sendContactEmail(email, firstName, lastName, message);
@@ -127,12 +142,13 @@ const contactUs = async (req, res, next) => {
       return next(appError.createError(result.message, 500, "ERROR"));
     }
 
-    res.status(200).json({ success: true, message: "Message sent successfully" });
+    res
+      .status(200)
+      .json({ success: true, message: "Message sent successfully" });
   } catch (error) {
     next(error);
   }
 };
-
 
 const forgetPassword = async (req, res) => {
   const { email } = req.body;
@@ -141,9 +157,9 @@ const forgetPassword = async (req, res) => {
     return res.status(404).json({ error: "User not found" });
   }
   const token = createToken(user, "10m");
-  await sendResetPasswordEmail(email, token,res);
+  await sendResetPasswordEmail(email, token, res);
 };
-const resetPassword = async (req, res,next) => {
+const resetPassword = async (req, res, next) => {
   try {
     const email = req.currentUser.email;
     const { newPassword } = req.body;
@@ -161,8 +177,6 @@ const resetPassword = async (req, res,next) => {
   }
 };
 
-
-
 module.exports = {
   updateUser,
   deleteUserImage,
@@ -170,5 +184,4 @@ module.exports = {
   contactUs,
   forgetPassword,
   resetPassword,
-
 };

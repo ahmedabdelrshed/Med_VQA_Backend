@@ -31,15 +31,15 @@ passport.use(
             },
           }
         );
-        const gender = peopleData.data.genders?.[0]?.value;
-        const birthday = peopleData.data.birthdays?.[0]?.date;
-        const date = new Date(
-          Date.UTC(birthday.year, birthday.month - 1, birthday.day)
-        );
 
         let user = await User.findOne({ email: profile.emails[0].value });
 
         if (!user) {
+          const gender = peopleData.data.genders?.[0]?.value;
+          const birthday = peopleData.data.birthdays?.[0]?.date;
+          const date = new Date(
+            Date.UTC(birthday.year, birthday.month - 1, birthday.day)
+          );
           user = new User({
             firstName: profile.name.givenName,
             lastName: profile.name.familyName,
@@ -52,11 +52,11 @@ passport.use(
           });
           await user.save();
         }
-    let isHasHealthRecord = false;
-    const healthRecord = await HealthRecord.findOne({ userId: user._id });
-    if (healthRecord) {
-      isHasHealthRecord = true;
-    }
+        let isHasHealthRecord = false;
+        const healthRecord = await HealthRecord.findOne({ userId: user._id });
+        if (healthRecord) {
+          isHasHealthRecord = true;
+        }
         const token = createToken(user);
         user = {
           id: user._id,
@@ -64,7 +64,7 @@ passport.use(
           lastName: user.lastName,
           email: user.email,
           avatar: user.avatar,
-          isHasHealthRecord
+          isHasHealthRecord,
         };
 
         return done(null, { user, token });

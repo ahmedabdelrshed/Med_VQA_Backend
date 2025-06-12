@@ -3,6 +3,8 @@ const { validationResult } = require("express-validator");
 const appError = require("../utils/appError");
 const bcrypt = require("bcryptjs");
 const createToken = require("../utils/createToken");
+const HealthRecord = require("../models/healthModel");
+
 const {
   checkUserExist,
   createHashPassword,
@@ -29,7 +31,7 @@ const register = async (req, res, next) => {
       password: hashPassword,
     });
 
-    await newUser.save(); 
+    await newUser.save();
 
     const token = createToken(newUser, "15m");
 
@@ -42,7 +44,6 @@ const register = async (req, res, next) => {
     next(error);
   }
 };
-
 
 const login = async (req, res, next) => {
   try {
@@ -79,7 +80,11 @@ const login = async (req, res, next) => {
 
     const expireDate = rememberMe ? "7d" : "1d";
     const token = createToken(user, expireDate);
-
+    let isHasHealthRecord = false;
+    const healthRecord = await HealthRecord.findOne({ userId: user._id });
+    if (healthRecord) {
+      isHasHealthRecord = true;
+    }
     res.json({
       token: token,
       user: {
@@ -88,6 +93,7 @@ const login = async (req, res, next) => {
         firstName: user.firstName,
         lastName: user.lastName,
         avatar: user.avatar,
+        isHasHealthRecord
       },
     });
   } catch (error) {

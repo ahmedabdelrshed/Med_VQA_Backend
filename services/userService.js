@@ -47,9 +47,7 @@ const handlePasswordUpdate = async (updateData, user) => {
     updateData.password = hashedPassword;
 
     delete updateData.oldPassword;
-  } else if (updateData.password && !updateData.oldPassword) {
-    throw appError.createError("Old password is required", 400, "ERROR");
-  }
+  } 
 };
 
 const validateNameLength = (updateData) => {

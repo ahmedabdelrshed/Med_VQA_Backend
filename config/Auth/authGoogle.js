@@ -4,6 +4,8 @@ const jwt = require("jsonwebtoken");
 const User = require("../../models/userModel");
 const createToken = require("../../utils/createToken");
 const axios = require("axios");
+const HealthRecord = require("../../models/healthModel");
+
 require("dotenv").config();
 
 passport.use(
@@ -50,7 +52,11 @@ passport.use(
           });
           await user.save();
         }
-
+    let isHasHealthRecord = false;
+    const healthRecord = await HealthRecord.findOne({ userId: user._id });
+    if (healthRecord) {
+      isHasHealthRecord = true;
+    }
         const token = createToken(user);
         user = {
           id: user._id,
@@ -58,7 +64,7 @@ passport.use(
           lastName: user.lastName,
           email: user.email,
           avatar: user.avatar,
-          
+          isHasHealthRecord
         };
 
         return done(null, { user, token });

@@ -31,7 +31,7 @@ function validateHealthInputs(data) {
     }
   });
 
-  const allowedActivityLevels = ["Low", "Medium", "High"];
+  const allowedActivityLevels = ["Low", "Moderate", "High"];
   if (data.activity_level !== undefined && !allowedActivityLevels.includes(data.activity_level)) {
     errors.push("Invalid activity_level (must be: Low, Medium, High)");
   }

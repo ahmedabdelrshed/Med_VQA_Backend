@@ -72,11 +72,23 @@ const updateUser = async (req, res, next) => {
 
       streamifier.createReadStream(req.file.buffer).pipe(uploadStream);
     } else {
-      const updatedUser = await User.findByIdAndUpdate(userId, req.body, {
+      let updatedUser = await User.findByIdAndUpdate(userId, req.body, {
         new: true,
         runValidators: true,
       });
-
+      let isHasHealthRecord = false;
+      const healthRecord = await HealthRecord.findOne({ userId: user._id });
+      if (healthRecord) {
+        isHasHealthRecord = true;
+      }
+      updatedUser = {
+        id: updatedUser._id,
+        email: updatedUser.email,
+        firstName: updatedUser.firstName,
+        lastName: updatedUser.lastName,
+        avatar: updatedUser.avatar,
+        isHasHealthRecord,
+      };
       if (!updatedUser) {
         return next(appError.createError("User update failed", 500, "ERROR"));
       }

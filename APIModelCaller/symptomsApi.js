@@ -20,7 +20,7 @@ async function getSymptomsDiseasePrediction(symptoms) {
 }
 function formatPredictionResponse(data) {
   const {
-    predicted_disease,
+    disease,
     description,
     precautions = [],
     medications = [],
@@ -29,7 +29,7 @@ function formatPredictionResponse(data) {
   } = data;
 
   return `
-🩺 Predicted Disease: ${predicted_disease}
+🩺 Predicted Disease: ${disease}
 📝 Description: ${description}
 💊 Recommended Medications: ${medications.join(', ').replace(/[\[\]']+/g, '')}
 🥗 Suggested Diets: ${diets.join(', ').replace(/[\[\]']+/g, '')}

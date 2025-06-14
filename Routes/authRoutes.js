@@ -23,17 +23,20 @@ authRouter.get(
   passport.authenticate("google", { session: false }),
   (req, res) => {
     const { token, user } = req.user;
-    // res.json({ token, message: "Google Authentication Success" });
-    // 🔹 Redirect to frontend with JWT token
-    const encodedUser = encodeURIComponent(JSON.stringify(user));
-    res.redirect(
-      `${process.env.FRONTEND_URL}/authSuccess?token=${token}&user=${encodedUser}`
-    );
+    if (user === "not found") {
+      res.redirect(
+        `${process.env.FRONTEND_URL}/login?msg=must Register First`
+      );
+      return;
+    } else {
+      const encodedUser = encodeURIComponent(JSON.stringify(user));
+      res.redirect(
+        `${process.env.FRONTEND_URL}/authSuccess?token=${token}&user=${encodedUser}`
+      );
+    }
   }
 );
 
-// �� GitHub OAuth
-// http://localhost:4000/auth/github
 authRouter.get(
   "/github",
   passport.authenticate("github", {

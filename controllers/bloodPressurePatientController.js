@@ -1,9 +1,9 @@
 const bpPatientStatus = require("../APIModelCaller/bpApiCaller");
-const validatePatientPressureInput = require("../validations/validatePatientPressureInput"); 
+const validatePatientPressureInput = require("../validations/validatePatientPressureInput");
 const User = require("../models/userModel");
-const calculateAge = require("../utils/calculateAge"); 
-const BloodPressurePatient= require("../models/bloodPressureModel");
-const calculateBMI = require("../utils/calculateBMI"); 
+const calculateAge = require("../utils/calculateAge");
+const BloodPressurePatient = require("../models/bloodPressureModel");
+const calculateBMI = require("../utils/calculateBMI");
 const moment = require("moment-timezone");
 
 const predictBPPatient = async (req, res) => {
@@ -16,9 +16,8 @@ const predictBPPatient = async (req, res) => {
   }
 
   const Gender = user.gender;
-  const Age = calculateAge(user.DateOfBirth); 
+  const Age = calculateAge(user.DateOfBirth);
   const { Weight_kg, Height_cm } = patientData;
-
 
   const validationErrors = validatePatientPressureInput(patientData);
   if (validationErrors.length > 0) {
@@ -48,13 +47,13 @@ const predictBPPatient = async (req, res) => {
     const { gender, age, weight, height, ...predictionDataToSave } = finalData;
     patient.predictions.push({
       ...predictionDataToSave,
-      prediction_result: prediction.prediction|| "Unknown result",
+      prediction_result: prediction.prediction || "Unknown result",
       createdAt: moment().tz("Africa/Cairo").toDate(),
     });
 
     await patient.save();
 
-   const formattedPredictions = patient.predictions.map((p) => ({
+    const formattedPredictions = patient.predictions.map((p) => ({
       ...p._doc,
       createdAt: moment(p.createdAt)
         .tz("Africa/Cairo")
@@ -81,14 +80,21 @@ const getPressurePredictions = async (req, res) => {
   const { startDate, endDate } = req.query;
 
   try {
-    const patientRecord = await BloodPressurePatient.findOne({ userID: userId });
+    const patientRecord = await BloodPressurePatient.findOne({
+      userID: userId,
+    });
 
     if (!patientRecord) {
-      return res.status(404).json({ message: "Patient not found" });
+      return res.status(200).json({
+        message: "Predictions fetched successfully.",
+        data: [],
+      });
     }
 
     if ((startDate && !endDate) || (!startDate && endDate)) {
-      return res.status(400).json({ message: "Please provide both startDate and endDate." });
+      return res
+        .status(400)
+        .json({ message: "Please provide both startDate and endDate." });
     }
 
     let filteredPredictions = patientRecord.predictions;
@@ -113,7 +119,7 @@ const getPressurePredictions = async (req, res) => {
       return predictionDate >= start && predictionDate <= end;
     });
 
-    const resultData = filteredPredictions.map(pred => ({
+    const resultData = filteredPredictions.map((pred) => ({
       createdAt: moment(pred.createdAt)
         .tz("Africa/Cairo")
         .format("YYYY-MM-DD HH:mm:ss"),
@@ -130,4 +136,4 @@ const getPressurePredictions = async (req, res) => {
   }
 };
 
-module.exports ={ predictBPPatient,getPressurePredictions};
+module.exports = { predictBPPatient, getPressurePredictions };

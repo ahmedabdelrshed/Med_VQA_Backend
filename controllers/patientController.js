@@ -44,19 +44,19 @@ const predictSugarPatient = async (req, res) => {
 
     patient.predictions.push({
       ...predictionDataToSave,
-      prediction_result: prediction.predicted_general_health_sugar || "Unknown result",
+      prediction_result:
+        prediction.predicted_general_health_sugar || "Unknown result",
       createdAt: moment().tz("Africa/Cairo").toDate(),
     });
 
     await patient.save();
 
-        const formattedPredictions = patient.predictions.map((p) => ({
+    const formattedPredictions = patient.predictions.map((p) => ({
       ...p._doc,
       createdAt: moment(p.createdAt)
         .tz("Africa/Cairo")
         .format("YYYY-MM-DD HH:mm:ss"),
     }));
-
 
     res.status(200).json({
       message: "Prediction completed and patient saved.",
@@ -79,11 +79,16 @@ const getPatientPredictions = async (req, res) => {
     const patientRecord = await SugarPatient.findOne({ userID: userId });
 
     if (!patientRecord) {
-      return res.status(404).json({ message: "Patient not found" });
+      res.status(200).json({
+        message: "Predictions fetched successfully.",
+        data: [],
+      });
     }
 
     if ((startDate && !endDate) || (!startDate && endDate)) {
-      return res.status(400).json({ message: "Please provide both startDate and endDate." });
+      return res
+        .status(400)
+        .json({ message: "Please provide both startDate and endDate." });
     }
 
     let filteredPredictions = patientRecord.predictions;
@@ -108,13 +113,12 @@ const getPatientPredictions = async (req, res) => {
       return predictionDate >= start && predictionDate <= end;
     });
 
-  const resultData = filteredPredictions.map(pred => ({
-  createdAt: moment(pred.createdAt)
-    .tz("Africa/Cairo")
-    .format("YYYY-MM-DD HH:mm:ss"),
-  result: pred.prediction_result,
-}));
-
+    const resultData = filteredPredictions.map((pred) => ({
+      createdAt: moment(pred.createdAt)
+        .tz("Africa/Cairo")
+        .format("YYYY-MM-DD HH:mm:ss"),
+      result: pred.prediction_result,
+    }));
 
     res.status(200).json({
       message: "Predictions fetched successfully.",
@@ -125,9 +129,5 @@ const getPatientPredictions = async (req, res) => {
     res.status(500).json({ message: "Error fetching predictions." });
   }
 };
-
-
-
-
 
 module.exports = { predictSugarPatient, getPatientPredictions };
